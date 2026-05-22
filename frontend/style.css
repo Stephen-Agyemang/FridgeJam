@@ -677,8 +677,6 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
   justify-content: flex-start;
   padding: 20px 0 32px;
   width: 100%;
-  overflow-y: auto;
-  max-height: calc(100vh - 120px);
 }
 
 .simmering-bowl-container {
