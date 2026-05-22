@@ -14,7 +14,10 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel
 
-from prompts import SYSTEM_PROMPT, PERSONALITY_PROMPTS
+try:
+    from backend.prompts import SYSTEM_PROMPT, PERSONALITY_PROMPTS
+except ImportError:
+    from prompts import SYSTEM_PROMPT, PERSONALITY_PROMPTS
 
 load_dotenv()
 
