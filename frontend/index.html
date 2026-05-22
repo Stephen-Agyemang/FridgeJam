@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FridgeChef — What's in Your Fridge?</title>
+    <meta name="description" content="Turn your leftovers into beautiful, chef-personalized recipes with AI-generated food photography. Simple, zero-waste, cozy cooking.">
+    
+    <!-- Google Fonts: Lora + Outfit (Exact same as MoodJar YouTube showcase) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Emoji Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍🍳</text></svg>">
+</head>
+<body>
+    <!-- Decorative Floating Daisies (Matching the reference screenshot) -->
+    <div class="bg-deco-flower flower-top-left" aria-hidden="true">
+        <svg viewBox="0 0 100 100" width="64" height="64">
+            <path d="M 50,22 C 40,8 18,18 24,34 C 8,39 8,61 24,66 C 18,82 40,92 50,78 C 60,92 82,82 76,66 C 92,61 92,39 76,34 C 82,18 60,8 50,22 Z" fill="#FAF7F0" stroke="#25283D" stroke-width="6"/>
+            <circle cx="50" cy="50" r="12" fill="#F2C078" stroke="#25283D" stroke-width="6"/>
+        </svg>
+    </div>
+    <div class="bg-deco-flower flower-bottom-right" aria-hidden="true">
+        <svg viewBox="0 0 100 100" width="64" height="64">
+            <path d="M 50,22 C 40,8 18,18 24,34 C 8,39 8,61 24,66 C 18,82 40,92 50,78 C 60,92 82,82 76,66 C 92,61 92,39 76,34 C 82,18 60,8 50,22 Z" fill="#F3A0B4" stroke="#25283D" stroke-width="6"/>
+            <circle cx="50" cy="50" r="12" fill="#FAF7F0" stroke="#25283D" stroke-width="6"/>
+        </svg>
+    </div>
+
+    <!-- Decorative Background: Sunrays (Kept for depth) -->
+    <div class="bg-layer" aria-hidden="true">
+        <div class="sunray sunray-1"></div>
+        <div class="sunray sunray-2"></div>
+        <div class="sunray sunray-3"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Main Header -->
+        <header class="app-header">
+            <div class="theme-toggle-container">
+                <button type="button" id="recipe-box-btn" class="theme-toggle-btn recipe-box-btn" aria-label="Open My Recipe Box">
+                    <span class="toggle-icon">📦</span>
+                    <span class="toggle-text">My Recipe Box (<span id="recipe-box-count">0</span>)</span>
+                </button>
+                <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Night Kitchen Mode">
+                    <span class="toggle-icon">🌙</span>
+                    <span class="toggle-text">Twilight Kitchen</span>
+                </button>
+            </div>
+            <h1 class="logo" id="main-title">fridge<span>chef</span></h1>
+            <p class="subtitle" id="main-subtitle">Elevate humble leftovers into a culinary masterpiece ✨</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content" id="state-container">
+            
+            <!-- STEP 1: Ingredient Input & Chef Selection -->
+            <section class="state-card active" id="state-input" aria-label="Stock your counter">
+                <div class="dashboard-layout">
+                    <!-- Left: Stock Control Panel -->
+                    <div class="control-panel">
+                        <div class="card-glass-header">
+                            <h2>Stock Your Counter</h2>
+                            <p>Tell us what ingredients are sitting in your fridge or pantry right now.</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label for="ingredients-input" style="margin-bottom: 0; display: inline-block;">What's in your fridge?</label>
+                                <div class="scan-actions">
+                                    <button type="button" id="btn-scan-photo" class="btn-scan-photo" aria-label="Scan Fridge Photo">
+                                        <span class="btn-scan-icon">📸</span>
+                                        <span class="btn-scan-text">Scan Fridge</span>
+                                    </button>
+                                    <input type="file" id="fridge-photo-input" accept="image/*" style="display: none;">
+                                </div>
+                            </div>
+                            <div class="ingredient-input-wrapper">
+                                <textarea id="ingredients-input" class="thought-input" maxlength="1000" rows="4" placeholder="I have two eggs, some spinach, and half an onion..." aria-label="What's in your fridge?"></textarea>
+                                <span class="char-count" id="char-count" aria-live="polite">0 / 1000</span>
+                            </div>
+                            <div class="ingredients-pool" id="ingredients-pool" aria-label="Selected ingredients">
+                                <span class="placeholder-tag">Your cooking counter is empty...</span>
+                            </div>
+                        </div>
+
+                        <div class="chef-selection-group">
+                            <label>Choose Your Culinary Voice</label>
+                            <div class="chef-buttons" role="radiogroup" aria-label="Select chef personality">
+                                
+                                <!-- Chef 1: Thrifty Tony (Budget) -->
+                                <button type="button" class="chef-btn" data-personality="budget" role="radio" aria-checked="false" aria-label="Thrifty Chef Tony" title="Thrifty Chef Tony — Strict Budget Planner">
+                                    <span class="chef-emoji">🍳</span>
+                                    <span class="chef-name-label">Tony</span>
+                                </button>
+
+                                <!-- Chef 2: Grandma Marie (Supportive Grandma) -->
+                                <button type="button" class="chef-btn selected" data-personality="grandma" role="radio" aria-checked="true" aria-label="Grandma Marie" title="Grandma Marie — Supportive Grandma">
+                                    <span class="chef-emoji">👵</span>
+                                    <span class="chef-name-label">Marie</span>
+                                </button>
+
+                                <!-- Chef 3: Chef Pierre (Gourmet Chef) -->
+                                <button type="button" class="chef-btn" data-personality="chef" role="radio" aria-checked="false" aria-label="Chef Pierre" title="Chef Pierre — High-End Chef">
+                                    <span class="chef-emoji">👨‍🍳</span>
+                                    <span class="chef-name-label">Pierre</span>
+                                </button>
+
+                                <!-- Chef 4: Healthy Chloe (Veggie & Nutrition Coach) -->
+                                <button type="button" class="chef-btn" data-personality="chloe" role="radio" aria-checked="false" aria-label="Healthy Chef Chloe" title="Healthy Chef Chloe — Veggie & Nutrition Coach">
+                                    <span class="chef-emoji">🥗</span>
+                                    <span class="chef-name-label">Chloe</span>
+                                </button>
+
+                            </div>
+
+                            <!-- Dynamic Bio Display Card -->
+                            <div class="chef-bio-display" id="chef-bio-display">
+                                <h4 id="chef-bio-name">Grandma Marie</h4>
+                                <p id="chef-bio-role">Supportive Grandma</p>
+                                <p id="chef-bio-desc">"Hello sweetheart! Let's make something absolutely delicious and warm. Cooked with love."</p>
+                            </div>
+                        </div>
+
+                        <div class="action-btn-container">
+                            <button type="button" id="btn-cook" class="btn-primary" disabled aria-label="Let's Cook">
+                                <span>Let's Cook</span>
+                                <span class="btn-icon" aria-hidden="true">🔥</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Cozy Glass Leftovers Jar on a Wooden Windowsill -->
+                    <div class="jar-panel">
+                        <div class="jar-windowsill">
+                            <div class="windowsill-header">
+                                <h3>Leftovers Jar</h3>
+                                <p>Watch your ingredients pile up, ready to shake and cook! 🫙</p>
+                            </div>
+                            <div class="jar-container" id="leftovers-jar-container">
+                                <div class="jar-cork"></div>
+                                <div class="jar-rim"></div>
+                                <div class="jar-thread"></div>
+                                <div class="jar-body">
+                                    <div class="jar-contents" id="leftovers-jar-contents">
+                                        <!-- Paper slips dropped here by JS -->
+                                    </div>
+                                    <p class="jar-empty-text" id="leftovers-jar-empty">Drop ingredients inside the leftovers jar…</p>
+                                </div>
+                                <div class="jar-shadow"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- STEP 2: Cooking Station (Loading Screen) -->
+            <section class="state-card" id="state-loading" aria-label="Cooking in progress">
+                <div class="stove-station">
+                    <div class="cooking-status-box">
+                        <div class="simmering-bowl-container">
+                            <svg viewBox="0 0 100 100" width="90" height="90" class="skillet-svg">
+                                <path d="M 35,25 Q 38,15 35,8" fill="none" stroke="#8E8D9C" stroke-width="3" stroke-linecap="round" class="steam-line steam-l1"/>
+                                <path d="M 50,25 Q 53,10 50,8" fill="none" stroke="#8E8D9C" stroke-width="3" stroke-linecap="round" class="steam-line steam-l2"/>
+                                <path d="M 65,25 Q 68,15 65,8" fill="none" stroke="#8E8D9C" stroke-width="3" stroke-linecap="round" class="steam-line steam-l3"/>
+                                <path d="M 20,40 H 80 A 10,10 0 0 1 70,55 H 30 A 10,10 0 0 1 20,40 Z" fill="#FAF7F0" stroke="#25283D" stroke-width="5"/>
+                                <line x1="80" x2="95" y1="47" y2="47" stroke="#25283D" stroke-width="5" stroke-linecap="round"/>
+                                <circle cx="35" cy="34" r="4" fill="#E8927A" class="cook-dot dot-1"/>
+                                <circle cx="50" cy="32" r="5" fill="#F2C078" class="cook-dot dot-2"/>
+                                <circle cx="65" cy="35" r="3" fill="#B5D3B8" class="cook-dot dot-3"/>
+                            </svg>
+                        </div>
+                        <h2 class="loading-title">stirring up something tasty...</h2>
+                        <p class="loading-subtitle">taste-testing in our heads</p>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" id="loading-progress"></div>
+                        </div>
+                        <p class="cooking-log" id="cooking-log-text">Gathering ingredients from the counter...</p>
+                        <span id="loading-chef-title" style="display:none;"></span>
+                    </div>
+
+                    <!-- ── Entertainment Zone ── -->
+                    <div class="entertain-zone" id="entertain-zone">
+
+                        <!-- Preference picker (shown first) -->
+                        <div class="ez-picker" id="ez-picker">
+                            <p class="ez-picker-label">While you wait… what sounds good? 👇</p>
+                            <div class="ez-picker-btns">
+                                <button class="ez-pick-btn" id="ez-pick-jokes" onclick="pickEntertain('jokes')">
+                                    <span class="ez-pick-icon">😂</span>
+                                    <span class="ez-pick-name">Tell me jokes</span>
+                                    <span class="ez-pick-sub">food puns & punchlines</span>
+                                </button>
+                                <button class="ez-pick-btn" id="ez-pick-game" onclick="pickEntertain('game')">
+                                    <span class="ez-pick-icon">🎮</span>
+                                    <span class="ez-pick-name">Play a game</span>
+                                    <span class="ez-pick-sub">tap the falling ingredients</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Jokes panel (hidden until chosen) -->
+                        <div class="ez-panel hidden" id="ez-panel-jokes">
+                            <div class="ez-panel-header">
+                                <span>😂 Food Jokes</span>
+                                <button class="ez-switch-btn" onclick="resetEntertainPicker()">Switch →</button>
+                            </div>
+                            <div class="joke-card" id="joke-card">
+                                <p class="joke-setup" id="joke-setup"></p>
+                                <button class="joke-reveal-btn" id="joke-reveal-btn" onclick="revealPunchline()">Tap for punchline 👆</button>
+                                <p class="joke-punchline hidden" id="joke-punchline"></p>
+                                <button class="joke-next-btn hidden" id="joke-next-btn" onclick="nextJoke()">Next joke →</button>
+                            </div>
+                        </div>
+
+                        <!-- Mini game panel (hidden until chosen) -->
+                        <div class="ez-panel hidden" id="ez-panel-game">
+                            <div class="ez-panel-header">
+                                <span>🎮 Catch the Ingredients</span>
+                                <button class="ez-switch-btn" onclick="resetEntertainPicker()">Switch →</button>
+                            </div>
+                            <div class="game-score-bar">
+                                <span>Score: <strong id="game-score">0</strong></span>
+                                <span>Streak: <strong id="game-streak">0</strong> 🔥</span>
+                            </div>
+                            <div class="game-arena" id="game-arena"></div>
+                        </div>
+                    </div>
+
+                    <!-- ── Ready Banner (shown when cooking completes) ── -->
+                    <div class="ready-banner hidden" id="ready-banner">
+                        <div class="ready-banner-inner">
+                            <div class="ready-icon">🍽️</div>
+                            <div class="ready-text">
+                                <h3>Your dish is ready!</h3>
+                                <p>The chef finished plating — no rush though!</p>
+                            </div>
+                        </div>
+                        <div class="ready-banner-actions">
+                            <button class="ready-btn" id="ready-see-btn">See My Recipe →</button>
+                            <button class="ready-keep-btn" id="ready-keep-btn">Keep playing 🎮</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+    <!-- ========== CARD OVERLAY ========== -->
+    <div class="card-overlay hidden" id="card-overlay" role="dialog" aria-modal="true" aria-label="Recipe Details" tabindex="-1">
+        <div class="card-overlay-backdrop" id="card-overlay-backdrop"></div>
+        
+        <!-- Floating Margin Vector Ornaments (Matching Screenshots) -->
+        <!-- Top-Left Cloud -->
+        <svg class="margin-deco cloud-deco" viewBox="0 0 100 100" width="80" height="80" aria-hidden="true">
+            <path d="M 25,60 C 15,60 10,50 15,40 C 10,25 25,15 40,20 C 50,10 70,10 75,25 C 85,25 90,35 85,45 C 90,55 80,65 70,60 Z" fill="#FAF7F0" stroke="#25283D" stroke-width="4.5" stroke-linejoin="round"/>
+        </svg>
+        <!-- Top-Right Pencil -->
+        <svg class="margin-deco pencil-deco" viewBox="0 0 100 100" width="70" height="70" aria-hidden="true">
+            <g transform="rotate(45 50 50)">
+                <rect x="38" y="15" width="24" height="50" rx="3" fill="#D3A297" stroke="#25283D" stroke-width="4.5" stroke-linejoin="round"/>
+                <path d="M 38,65 L 50,85 L 62,65 Z" fill="#FAF7F0" stroke="#25283D" stroke-width="4.5" stroke-linejoin="round"/>
+                <path d="M 45,75 L 50,85 L 55,75 Z" fill="#25283D" />
+                <rect x="38" y="15" width="24" height="12" fill="#E8C5C8" stroke="#25283D" stroke-width="4.5" stroke-linejoin="round"/>
+            </g>
+        </svg>
+        <!-- Bottom-Left Star -->
+        <svg class="margin-deco star-deco" viewBox="0 0 100 100" width="60" height="60" aria-hidden="true">
+            <path d="M 50,10 L 62,38 L 92,38 L 68,56 L 77,85 L 50,67 L 23,85 L 32,56 L 8,38 L 38,38 Z" fill="#D0D5FA" stroke="#25283D" stroke-width="4.5" stroke-linejoin="round"/>
+        </svg>
+        <!-- Bottom-Right Sparkle -->
+        <svg class="margin-deco sparkle-deco" viewBox="0 0 100 100" width="60" height="60" aria-hidden="true">
+            <path d="M 50,10 C 50,35 65,50 90,50 C 65,50 50,65 50,90 C 50,65 35,50 10,50 C 35,50 50,35 50,10 Z" fill="#FAF1D6" stroke="#25283D" stroke-width="4.5" stroke-linejoin="round"/>
+        </svg>
+        
+        <div class="recipe-container">
+            <!-- Transparent Action Pill Bar -->
+            <div class="recipe-action-bar">
+                <button type="button" class="btn-action-back" id="recipe-back-btn" aria-label="Go back">
+                    <span>← back</span>
+                </button>
+                <div class="recipe-action-right">
+                    <button type="button" class="btn-action-circle" id="recipe-heart-btn" aria-label="Favorite recipe">
+                        <span class="heart-icon">🤍</span>
+                    </button>
+                    <button type="button" class="btn-action-circle" id="recipe-share-btn" aria-label="Copy and share recipe card">
+                        <span>🔗</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Central Cozy Eggshell Recipe Card Sheet -->
+            <div class="card-overlay-content" id="card-overlay-content">
+                <!-- LEFT PANEL: Visuals & Narrative (Polaroid, Chef Bubble, Post-It Tip) -->
+                <div class="recipe-left-panel">
+                    <!-- Polaroid Photo Frame & Badge -->
+                    <div class="recipe-photo-header">
+                        <img id="dish-photo-img" src="" alt="Beautifully prepared dish" class="dish-photo hidden">
+                        
+                        <!-- Fallback Presentation -->
+                        <div id="dish-photo-fallback" class="dish-photo-fallback-container">
+                            <div class="fallback-food-icon" id="fallback-emoji">🍽️</div>
+                            <p class="fallback-text">Recipe Prepared & Plated</p>
+                            <div class="fallback-note">A visual masterpiece in your mind</div>
+                        </div>
+                        
+                        <div class="chef-badge" id="recipe-chef-badge">
+                            <span class="badge-emoji">👵</span> Plated by Grandma Marie
+                        </div>
+                    </div>
+                    
+                    <!-- Chef Speech bubble with double dots avatar overlapping border -->
+                    <div class="chef-narrative-bubble">
+                        <div class="bubble-avatar-badge">
+                            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" fill="#FAF7F0" stroke="#25283D" stroke-width="2.5"/>
+                                <circle cx="9" cy="12" r="1.5" fill="#25283D"/>
+                                <circle cx="15" cy="12" r="1.5" fill="#25283D"/>
+                            </svg>
+                        </div>
+                        <div class="bubble-content">
+                            <p id="recipe-narrative-text">This dish reminds me of cozy mornings long ago...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Cozy Post-It Tip -->
+                    <div class="recipe-tip-container" id="recipe-tip-box">
+                        <div class="tip-header">
+                            <span class="tip-icon">✨</span>
+                            <h4 id="recipe-tip-header-title">Grandma's Secret Tip</h4>
+                        </div>
+                        <p class="tip-body" id="recipe-tip-text">"Make sure to whisk the eggs in a bowl until they're nice and frothy before adding them to the pan."</p>
+                    </div>
+                </div>
+                
+                <!-- RIGHT PANEL: Recipe details (Title, Stats, Ingredients, Steps, Restart Button) -->
+                <div class="recipe-right-panel">
+                    <h2 class="recipe-title" id="recipe-title">Gently Scrambled Eggs with Spinach</h2>
+                    <p class="recipe-subtitle-desc" id="recipe-intro">"This is Grandma's favorite morning fuel, sweetheart. A touch of butter makes it sing."</p>
+                    
+                    <!-- Stat pills row -->
+                    <div class="recipe-badge-row">
+                        <span class="stat-pill" id="recipe-stat-time">⏱️ 20 mins</span>
+                        <span class="stat-pill" id="recipe-stat-servings">👥 2 servings</span>
+                        <span class="stat-pill" id="recipe-stat-difficulty">⭐️ Easy</span>
+                    </div>
+                    
+                    <!-- Ingredients List (Check circle vs Plus circle row pills) -->
+                    <div class="recipe-section">
+                        <h3 class="section-title">
+                            <span class="dot-bullet bullet-yellow"></span> ingredients
+                        </h3>
+                        <div class="ingredients-pills-list" id="recipe-ingredients-list">
+                            <!-- Populated dynamically as rows by app.js -->
+                        </div>
+                    </div>
+                    
+                    <!-- Preparation Steps List -->
+                    <div class="recipe-section">
+                        <h3 class="section-title">
+                            <span class="dot-bullet bullet-purple"></span> preparation
+                        </h3>
+                        <ol class="cozy-steps-list" id="recipe-steps-list">
+                            <!-- Populated dynamically by app.js -->
+                        </ol>
+                    </div>
+                    
+                    <!-- Bottom Reset Trigger -->
+                    <div class="recipe-bottom-actions">
+                        <button type="button" id="btn-restart" class="btn-shake" aria-label="Cook another dish">
+                            Cook Another Dish
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </main>
+        
+        <!-- App Footer -->
+        <footer class="app-footer">
+            <p>fridgechef &copy; 2026. Made with Lora & Outfit typography.</p>
+        </footer>
+    </div>
+
+    <!-- Recipe Box Drawer Overlay -->
+    <div id="recipe-box-backdrop" class="recipe-box-backdrop"></div>
+    <div id="recipe-box-drawer" class="recipe-box-drawer" role="dialog" aria-labelledby="recipe-box-title">
+        <!-- Resizing Drag Handle -->
+        <div class="recipe-box-resize-handle" id="recipe-box-resize-handle" aria-label="Resize Recipe Box" title="Drag to resize">
+            <div class="recipe-box-resize-line"></div>
+        </div>
+        <div class="recipe-box-header">
+            <h2 id="recipe-box-title" class="recipe-box-heading">📦 My Recipe Box</h2>
+            <button id="recipe-box-close" class="recipe-box-close" aria-label="Close Recipe Box">✕</button>
+        </div>
+        <div class="recipe-box-divider">
+            <div class="recipe-box-divider-line"></div>
+            <span class="recipe-box-divider-sun">☀️</span>
+            <div class="recipe-box-divider-line"></div>
+        </div>
+        <div id="recipe-box-list" class="recipe-box-list">
+            <!-- Saved recipes cards will be rendered dynamically here -->
+            <div class="recipe-box-empty">
+                <p>Your Recipe Box is empty!</p>
+                <p class="empty-sub">Heart recipe cards to save them here for later zero-waste inspiration. ❤️</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast hidden" id="app-toast" role="alert">
+        <p class="toast-text" id="toast-text-msg">Recipe copied to clipboard!</p>
+        <button id="toast-dismiss" class="toast-dismiss" aria-label="Dismiss">✕</button>
+    </div>
+
+    <!-- Custom Script -->
+    <script src="app.js"></script>
+</body>
+</html>
