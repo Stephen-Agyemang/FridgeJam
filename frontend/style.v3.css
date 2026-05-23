@@ -366,8 +366,6 @@ body.dark-theme {
   align-items: start;
 }
 
-}
-
 .ingredients-label-row {
   display: flex;
   justify-content: space-between;
@@ -1929,6 +1927,19 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
     gap: 24px;
   }
 
+  .theme-toggle-container {
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .theme-toggle-btn {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    gap: 4px;
+  }
+
   .dashboard-layout {
     grid-template-columns: 1fr;
     gap: 32px;
@@ -1988,6 +1999,33 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
   .logo {
     font-size: 1.8rem;
   }
+
+  .subtitle {
+    font-size: 0.88rem;
+    max-width: 92%;
+    margin: 0 auto;
+  }
+  
+  .card-glass-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .card-glass-header h2 {
+    font-size: 1.25rem;
+  }
+  
+  .card-glass-header p {
+    font-size: 0.85rem;
+  }
+
+  .chef-bio-display {
+    padding: 10px 14px;
+  }
+  
+  #chef-bio-desc {
+    font-size: 0.82rem;
+  }
   
   .ingredients-list {
     grid-template-columns: 1fr;
@@ -1999,6 +2037,26 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
   
   #btn-add-ingredient {
     padding: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .chef-btn {
+    width: 54px;
+    height: 54px;
+  }
+  .chef-emoji {
+    font-size: 1rem;
+  }
+  .chef-name-label {
+    font-size: 0.58rem;
+  }
+  .chef-buttons {
+    gap: 6px;
+  }
+  .theme-toggle-btn {
+    padding: 5px 8px;
+    font-size: 0.72rem;
   }
 }
 
