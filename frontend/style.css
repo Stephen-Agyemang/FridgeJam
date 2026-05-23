@@ -366,9 +366,14 @@ body.dark-theme {
   align-items: start;
 }
 
-.control-panel {
+}
+
+.ingredients-label-row {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  width: 100%;
 }
 
 .form-group {
@@ -1919,9 +1924,43 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
 
 /* --- Responsive Details --- */
 @media (max-width: 820px) {
+  .app-container {
+    padding: 20px 12px 40px; /* Snugger mobile padding preventing overflow scroll */
+    gap: 24px;
+  }
+
   .dashboard-layout {
     grid-template-columns: 1fr;
     gap: 32px;
+  }
+  
+  .ingredients-label-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .chef-buttons {
+    gap: 10px; /* tight snug gaps preventing card stretch */
+    margin-bottom: 12px;
+    width: 100%;
+    justify-content: space-around;
+  }
+  
+  .chef-btn {
+    width: 62px; /* snugger buttons fitting all screens */
+    height: 62px;
+    gap: 2px;
+    box-shadow: 0 3px 0 var(--chef-btn-border);
+  }
+  
+  .chef-emoji {
+    font-size: 1.22rem;
+  }
+  
+  .chef-name-label {
+    font-size: 0.65rem;
   }
   
   .recipe-layout {
@@ -1943,7 +1982,7 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
 
 @media (max-width: 520px) {
   .state-card {
-    padding: 20px;
+    padding: 16px 14px; /* Cozy snug mobile paddings */
   }
   
   .logo {
