@@ -12,6 +12,13 @@ This repository features a fully responsive, state-of-the-art retro-cozy design,
 
 ---
 
+🚀 **Live Production Application:** [https://fridgejam.web.app](https://fridgejam.web.app)
+
+---
+
+<details>
+<summary>🛠️ Local Developer Setup, Architecture & Deployment Manual</summary>
+
 ## 🚀 Quick Start (Local Setup)
 
 Getting FridgeChef up and running locally is simple, and you have two ways to do it.
@@ -101,6 +108,8 @@ docker build -t fridgechef .
 docker run -p 8080:8080 -e GEMINI_API_KEY="your_api_key_here" fridgechef
 ```
 Then visit [http://localhost:8080/](http://localhost:8080/).
+
+</details>
 
 ---
 
