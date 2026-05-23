@@ -169,6 +169,13 @@ const DOM = {
     recipeTipText: document.getElementById('recipe-tip-text'),
     recipeTipHeaderTitle: document.getElementById('recipe-tip-header-title'),
     
+    // Nutrition Facts Elements
+    recipeNutritionCard: document.getElementById('recipe-nutrition-card'),
+    nutrCalories: document.getElementById('nutr-calories'),
+    nutrProtein: document.getElementById('nutr-protein'),
+    nutrCarbs: document.getElementById('nutr-carbs'),
+    nutrFat: document.getElementById('nutr-fat'),
+    
     btnRestart: document.getElementById('btn-restart'),
     toast: document.getElementById('app-toast'),
     btnScanPhoto: document.getElementById('btn-scan-photo'),
@@ -1110,6 +1117,30 @@ function renderRecipeScreen(recipe, imageResult) {
     if (DOM.recipeTitle) DOM.recipeTitle.textContent = recipe.title;
     if (DOM.recipeIntro) DOM.recipeIntro.textContent = `A custom creation in the voice of ${badgeInfo.text.replace("Plated by ", "")}`;
     if (DOM.recipeNarrativeText) DOM.recipeNarrativeText.textContent = recipe.personality_intro;
+
+    // 3b. Nutrition Facts Card (with smart unit parsing and safe backwards-compatible fallback)
+    if (DOM.recipeNutritionCard) {
+        if (recipe.nutrition) {
+            let calVal = recipe.nutrition.calories;
+            if (calVal) {
+                const calStr = String(calVal).trim();
+                if (!calStr.toLowerCase().includes('kcal')) {
+                    calVal = `${calStr} kcal`;
+                } else {
+                    calVal = calStr;
+                }
+            } else {
+                calVal = "-";
+            }
+            if (DOM.nutrCalories) DOM.nutrCalories.textContent = calVal;
+            if (DOM.nutrProtein) DOM.nutrProtein.textContent = recipe.nutrition.protein || "-";
+            if (DOM.nutrCarbs) DOM.nutrCarbs.textContent = recipe.nutrition.carbs || "-";
+            if (DOM.nutrFat) DOM.nutrFat.textContent = recipe.nutrition.fat || "-";
+            DOM.recipeNutritionCard.style.display = 'flex';
+        } else {
+            DOM.recipeNutritionCard.style.display = 'none';
+        }
+    }
 
     // Set Heart Icon depending on favorites status
     if (DOM.recipeHeartBtn) {

@@ -1439,6 +1439,88 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
   font-family: var(--font-body);
 }
 
+/* Nutrition Facts Card */
+.recipe-nutrition-card {
+  border: 2.5px solid #25283D;
+  border-radius: 16px;
+  background-color: #F8F5F2; /* Creamy off-white */
+  padding: 12px 16px;
+  margin: 14px 0 2px 0;
+  box-shadow: 0 4px 0 #25283D;
+  font-family: var(--font-body);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nutrition-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #25283D;
+  padding-bottom: 4px;
+  margin-bottom: 1px;
+}
+
+.nutrition-title {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #25283D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nutrition-serving {
+  font-size: 0.72rem;
+  color: #6E6D7A;
+  font-style: italic;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.nutrition-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 2px;
+  background-color: #FAF7F0;
+  border: 2px solid #25283D;
+  border-radius: 10px;
+  box-shadow: 0 2.5px 0 #25283D;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+}
+
+.nutrition-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4.5px 0 #25283D;
+}
+
+.nutrition-value {
+  font-family: var(--font-header);
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: #25283D;
+}
+
+.nutrition-label {
+  font-size: 0.68rem;
+  color: #6E6D7A;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* Custom background accents for nutrition items to look playful */
+.nutrition-grid .nutrition-item:nth-child(1) { background-color: #FFF3E0; } /* Calories - Warm Orange */
+.nutrition-grid .nutrition-item:nth-child(2) { background-color: #E8F5E9; } /* Protein - Soft Green */
+.nutrition-grid .nutrition-item:nth-child(3) { background-color: #E3F2FD; } /* Carbs - Cozy Blue */
+.nutrition-grid .nutrition-item:nth-child(4) { background-color: #FCE4EC; } /* Fat - Warm Pink */
+
 /* Chef Narrative Speech Bubble */
 .chef-narrative-bubble {
   position: relative;
