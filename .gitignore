@@ -23,3 +23,6 @@ Thumbs.db
 *.swo
 
 *BRIEF.md
+
+# Firebase cache
+.firebase/
