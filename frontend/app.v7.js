@@ -2139,7 +2139,14 @@ function renderRecipeBoxList() {
             DOM.recipeBoxList.querySelectorAll('.recipe-box-item').forEach(el => {
                 const ep = el.querySelector('.recipe-box-expand');
                 const ch = el.querySelector('.recipe-box-card-chevron');
-                if (ep) { ep.style.maxHeight = '0'; ep.style.borderTopWidth = '0'; }
+                if (ep) { 
+                    if (ep.style.maxHeight === 'none') {
+                        ep.style.maxHeight = ep.scrollHeight + 'px';
+                        void ep.offsetHeight; // force reflow
+                    }
+                    ep.style.maxHeight = '0'; 
+                    ep.style.borderTopWidth = '0'; 
+                }
                 if (ch) ch.textContent = '▾';
                 el.querySelector('.recipe-box-card')?.setAttribute('aria-expanded', 'false');
             });
@@ -2150,10 +2157,19 @@ function renderRecipeBoxList() {
                 expandPane.style.borderTopWidth = '2px';
                 card.setAttribute('aria-expanded', 'true');
                 if (chevron) chevron.textContent = '▴';
-                // Scroll into view after animation settles
+                
+                // Allow card to dynamically auto-resize when image loads asynchronously
+                expandPane.addEventListener('transitionend', function onEnd() {
+                    if (card.getAttribute('aria-expanded') === 'true') {
+                        expandPane.style.maxHeight = 'none';
+                    }
+                    expandPane.removeEventListener('transitionend', onEnd);
+                });
+
+                // Scroll the card smoothly to the top of the drawer list, starting almost immediately for a premium, fluid transition
                 setTimeout(() => {
-                    wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }, 550);
+                    wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
             }
         });
 
