@@ -107,4 +107,14 @@ Then visit [http://localhost:8080/](http://localhost:8080/).
 ## 🎨 Design Systems & Cozy Touches
 - **Typography**: Outfit (headings) + Lora (body) fonts loaded dynamically from Google Fonts.
 - **Borders & Shadows**: Warm retro aesthetic utilizing crisp `2.5px` charcoal bold-borders (`#1E2022`) and soft, pillowy box-shadows (`4px 4px 0px`).
+- **Accurate Calorie & Nutrient Pills**: Retro HSL-tinted macro capsules seamlessly displaying Calories, Protein, Carbs, and Fat.
 - **Soundscape**: In-browser synthesizer that generates cute retro sound effects (bubbles, pops, clicks, sizzles) without external audio file dependencies.
+- **Double-Column landscape Cookbook PDF**: A print-ready, CORS-resilient landscape blueprint that compiles your recipes onto a single sheet of paper using `html2pdf.js`.
+
+---
+
+## 🎮 Interactive Entertainment & AI Turing Challenges
+FridgeChef keeps you entertained while your AI meal is cooking with two highly competitive and interactive games:
+1. **Dynamic Skillet Game (Progressive Difficulty)**: Catch falling ingredients in your skillet! The game speeds up the longer you play—the spawning rate accelerates down to `450ms` and falling items speed up, progressing through **Cozy 🥗**, **Simmering ⏱️**, **Spicy! 🌶️**, and **CHEF MODE! ⚡🔥** stages.
+2. **Gemini Joke Reviewer**: After reading three food puns, the chef challenges you to tell a joke back! It passes your joke to a Gemini API endpoint (`/api/evaluate-joke`) to evaluate it in real-time, giving funny laughs or blunt-but-playful reactions in your active chef's persona accompanied by custom synth beeps and click sounds.
+
