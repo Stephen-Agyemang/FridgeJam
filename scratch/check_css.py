@@ -32,4 +32,4 @@ def check_css(filepath):
         print(f"  Line {line_num}: {msg} - {line.strip()}")
 
 if __name__ == '__main__':
-    check_css('frontend/style.v3.css')
+    check_css('frontend/style.v4.css')
