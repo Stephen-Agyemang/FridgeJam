@@ -1496,9 +1496,7 @@ function downloadRecipeAsPDF() {
         if (pdfNutrBox) pdfNutrBox.style.display = 'none';
     }
 
-    // 3. Temporarily make printable template active for html2pdf renderer
-    pdfTemplate.classList.add('active-render');
-
+    // 3. Configuration options with strict scroll reset coordinates for html2canvas
     const opt = {
         margin:       [0.15, 0.15, 0.15, 0.15],
         filename:     `${r.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`,
@@ -1507,7 +1505,9 @@ function downloadRecipeAsPDF() {
             scale: 2, 
             useCORS: true, 
             logging: false,
-            backgroundColor: '#FAF7F0'
+            backgroundColor: '#FAF7F0',
+            scrollY: 0,
+            scrollX: 0
         },
         jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
     };
@@ -1516,14 +1516,10 @@ function downloadRecipeAsPDF() {
     const executePDFGeneration = () => {
         html2pdf().set(opt).from(pdfTemplate).save()
             .then(() => {
-                // Restore hidden state instantly
-                pdfTemplate.classList.remove('active-render');
                 showToast("Recipe card saved successfully! 🍳✨");
             })
             .catch(err => {
                 console.error("PDF generation failed:", err);
-                // Restore hidden state instantly
-                pdfTemplate.classList.remove('active-render');
                 showToast("PDF failed. Copying recipe text instead!");
                 copyRecipeToClipboard();
             });

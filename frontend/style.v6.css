@@ -3162,9 +3162,9 @@ body.dark-theme .scan-overlay-content {
 }
 
 
-/* --- Dedicated PDF Cookbook Template Styling (Hidden on Screen) --- */
+/* --- Dedicated PDF Cookbook Template Styling (Hidden on Screen via Container) --- */
 .pdf-print-template {
-  display: none; /* hidden on screen */
+  display: flex;
   width: 9.8in; /* exact dimensions for landscape letter */
   height: 6.8in;
   padding: 0.35in;
@@ -3174,21 +3174,9 @@ body.dark-theme .scan-overlay-content {
   color: #25283D;
   border: 4.5px solid #25283D;
   border-radius: 24px;
-  position: absolute;
-  top: -9999px;
-  left: -9999px;
+  position: relative;
   flex-direction: column;
   justify-content: space-between;
-}
-
-/* Styled with flex during PDF conversion print trigger */
-.pdf-print-template.active-render {
-  display: flex !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  z-index: -9999 !important; /* Keep it below everything so the user doesn't see a flash */
-  opacity: 1 !important;
 }
 
 .pdf-card-header {

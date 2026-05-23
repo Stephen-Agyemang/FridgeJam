@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="style.v5.css">
+    <link rel="stylesheet" href="style.v6.css">
     
     <!-- Emoji Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍🍳</text></svg>">
@@ -432,70 +432,72 @@
     </div>
 
     <!-- Dedicated Landscape PDF Cookbook Print Template (Hidden on Screen) -->
-    <div id="recipe-pdf-template" class="pdf-print-template">
-        <div class="pdf-card-header">
-            <h1 id="pdf-recipe-title" class="pdf-title">-</h1>
-            <div class="pdf-chef-byline" id="pdf-recipe-byline">🍳 Plated by Grandma Marie</div>
-        </div>
-        
-        <div class="pdf-card-divider"></div>
-        
-        <div class="pdf-card-body">
-            <!-- Left Column: Visuals, Bio, Narrative & Tip -->
-            <div class="pdf-left-column">
-                <div class="pdf-photo-wrapper">
-                    <img id="pdf-dish-photo" src="" alt="Dish Photo" class="pdf-photo" crossorigin="anonymous">
-                </div>
-                
-                <div class="pdf-narrative-box">
-                    <p id="pdf-narrative-text">-</p>
-                </div>
-                
-                <div class="pdf-tip-box">
-                    <strong id="pdf-tip-header-title">💡 Grandma's Secret Tip</strong>
-                    <p id="pdf-tip-text">-</p>
-                </div>
+    <div style="position: absolute; left: 0; top: 0; width: 0; height: 0; overflow: hidden; z-index: -9999; pointer-events: none;" aria-hidden="true">
+        <div id="recipe-pdf-template" class="pdf-print-template">
+            <div class="pdf-card-header">
+                <h1 id="pdf-recipe-title" class="pdf-title">-</h1>
+                <div class="pdf-chef-byline" id="pdf-recipe-byline">🍳 Plated by Grandma Marie</div>
             </div>
             
-            <!-- Right Column: Stats, Ingredients, Steps & Nutrition -->
-            <div class="pdf-right-column">
-                <!-- Stats Row -->
-                <div class="pdf-stats-row">
-                    <span class="pdf-stat-pill" id="pdf-stat-time">⏱️ -</span>
-                    <span class="pdf-stat-pill" id="pdf-stat-difficulty">⭐️ -</span>
+            <div class="pdf-card-divider"></div>
+            
+            <div class="pdf-card-body">
+                <!-- Left Column: Visuals, Bio, Narrative & Tip -->
+                <div class="pdf-left-column">
+                    <div class="pdf-photo-wrapper">
+                        <img id="pdf-dish-photo" src="" alt="Dish Photo" class="pdf-photo" crossorigin="anonymous">
+                    </div>
+                    
+                    <div class="pdf-narrative-box">
+                        <p id="pdf-narrative-text">-</p>
+                    </div>
+                    
+                    <div class="pdf-tip-box">
+                        <strong id="pdf-tip-header-title">💡 Grandma's Secret Tip</strong>
+                        <p id="pdf-tip-text">-</p>
+                    </div>
                 </div>
                 
-                <!-- Ingredients Section -->
-                <div class="pdf-section">
-                    <h3 class="pdf-section-title">Ingredients</h3>
-                    <ul id="pdf-ingredients-list" class="pdf-ingredients-list">
-                        <!-- Populated dynamically -->
-                    </ul>
-                </div>
-                
-                <!-- Preparation Section -->
-                <div class="pdf-section">
-                    <h3 class="pdf-section-title">Preparation</h3>
-                    <ol id="pdf-steps-list" class="pdf-steps-list">
-                        <!-- Populated dynamically -->
-                    </ol>
-                </div>
-                
-                <!-- Nutrition Row -->
-                <div class="pdf-nutrition-row" id="pdf-nutrition-row-box">
-                    <strong>⚡ Nutrition Facts (per serving):</strong>
-                    <div class="pdf-nutrition-grid">
-                        <span class="pdf-nutrition-pill calories-pill" id="pdf-nutr-calories">-</span>
-                        <span class="pdf-nutrition-pill protein-pill" id="pdf-nutr-protein">- Prot</span>
-                        <span class="pdf-nutrition-pill carbs-pill" id="pdf-nutr-carbs">- Carbs</span>
-                        <span class="pdf-nutrition-pill fat-pill" id="pdf-nutr-fat">- Fat</span>
+                <!-- Right Column: Stats, Ingredients, Steps & Nutrition -->
+                <div class="pdf-right-column">
+                    <!-- Stats Row -->
+                    <div class="pdf-stats-row">
+                        <span class="pdf-stat-pill" id="pdf-stat-time">⏱️ -</span>
+                        <span class="pdf-stat-pill" id="pdf-stat-difficulty">⭐️ -</span>
+                    </div>
+                    
+                    <!-- Ingredients Section -->
+                    <div class="pdf-section">
+                        <h3 class="pdf-section-title">Ingredients</h3>
+                        <ul id="pdf-ingredients-list" class="pdf-ingredients-list">
+                            <!-- Populated dynamically -->
+                        </ul>
+                    </div>
+                    
+                    <!-- Preparation Section -->
+                    <div class="pdf-section">
+                        <h3 class="pdf-section-title">Preparation</h3>
+                        <ol id="pdf-steps-list" class="pdf-steps-list">
+                            <!-- Populated dynamically -->
+                        </ol>
+                    </div>
+                    
+                    <!-- Nutrition Row -->
+                    <div class="pdf-nutrition-row" id="pdf-nutrition-row-box">
+                        <strong>⚡ Nutrition Facts (per serving):</strong>
+                        <div class="pdf-nutrition-grid">
+                            <span class="pdf-nutrition-pill calories-pill" id="pdf-nutr-calories">-</span>
+                            <span class="pdf-nutrition-pill protein-pill" id="pdf-nutr-protein">- Prot</span>
+                            <span class="pdf-nutrition-pill carbs-pill" id="pdf-nutr-carbs">- Carbs</span>
+                            <span class="pdf-nutrition-pill fat-pill" id="pdf-nutr-fat">- Fat</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="pdf-card-footer">
-            <p>Printed with love from FridgeChef. Keep cooking zero-waste! 👨‍🍳</p>
+            
+            <div class="pdf-card-footer">
+                <p>Printed with love from FridgeChef. Keep cooking zero-waste! 👨‍🍳</p>
+            </div>
         </div>
     </div>
 
@@ -509,6 +511,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Custom Script -->
-    <script src="app.v4.js"></script>
+    <script src="app.v5.js"></script>
 </body>
 </html>
