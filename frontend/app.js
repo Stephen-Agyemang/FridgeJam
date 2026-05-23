@@ -1132,10 +1132,10 @@ function renderRecipeScreen(recipe, imageResult) {
             } else {
                 calVal = "-";
             }
-            if (DOM.nutrCalories) DOM.nutrCalories.textContent = calVal;
-            if (DOM.nutrProtein) DOM.nutrProtein.textContent = recipe.nutrition.protein || "-";
-            if (DOM.nutrCarbs) DOM.nutrCarbs.textContent = recipe.nutrition.carbs || "-";
-            if (DOM.nutrFat) DOM.nutrFat.textContent = recipe.nutrition.fat || "-";
+            if (DOM.nutrCalories) DOM.nutrCalories.innerHTML = `🔥 <strong>${calVal}</strong>`;
+            if (DOM.nutrProtein) DOM.nutrProtein.innerHTML = `🥩 <strong>${recipe.nutrition.protein || "-"}</strong> Prot`;
+            if (DOM.nutrCarbs) DOM.nutrCarbs.innerHTML = `🍞 <strong>${recipe.nutrition.carbs || "-"}</strong> Carbs`;
+            if (DOM.nutrFat) DOM.nutrFat.innerHTML = `🧈 <strong>${recipe.nutrition.fat || "-"}</strong> Fat`;
             DOM.recipeNutritionCard.style.display = 'flex';
         } else {
             DOM.recipeNutritionCard.style.display = 'none';
@@ -1213,37 +1213,122 @@ function downloadRecipeAsPDF() {
     if (!appState.currentRecipe) return;
     const r = appState.currentRecipe;
     
-    // Ask for explicit permission
-    const confirmDownload = confirm(`Chef, would you like to save "${r.title}" as a beautiful PDF recipe card to your computer?`);
+    // Explicit permission check
+    const confirmDownload = confirm(`Chef, would you like to save "${r.title}" as a beautiful, print-ready PDF cookbook card?`);
     if (!confirmDownload) {
         showToast("PDF download canceled.");
         return;
     }
     
-    showToast("Preparing your PDF recipe card... 🍳");
+    showToast("Preparing your print-ready PDF cookbook card... 🍳");
     if (synth && typeof synth.playDialClick === 'function') {
-        synth.playDialClick(); // play cute sound
+        synth.playDialClick();
     }
 
-    const element = document.getElementById('card-overlay-content');
-    const leftPanel = document.querySelector('.recipe-left-panel');
-    const rightPanel = document.querySelector('.recipe-right-panel');
-    
-    // Temporarily expand scroll overflow height limits so html2canvas renders complete lists
-    const origLeftOverflow = leftPanel ? leftPanel.style.overflowY : '';
-    const origRightOverflow = rightPanel ? rightPanel.style.overflowY : '';
-    
-    if (leftPanel) {
-        leftPanel.style.overflowY = 'visible';
-        leftPanel.style.maxHeight = 'none';
+    // 1. Grab all PDF template elements
+    const pdfTemplate = document.getElementById('recipe-pdf-template');
+    const pdfTitle = document.getElementById('pdf-recipe-title');
+    const pdfByline = document.getElementById('pdf-recipe-byline');
+    const pdfPhoto = document.getElementById('pdf-dish-photo');
+    const pdfNarrative = document.getElementById('pdf-narrative-text');
+    const pdfTipHeader = document.getElementById('pdf-tip-header-title');
+    const pdfTipText = document.getElementById('pdf-tip-text');
+    const pdfTime = document.getElementById('pdf-stat-time');
+    const pdfDifficulty = document.getElementById('pdf-stat-difficulty');
+    const pdfIngredients = document.getElementById('pdf-ingredients-list');
+    const pdfSteps = document.getElementById('pdf-steps-list');
+    const pdfCal = document.getElementById('pdf-nutr-calories');
+    const pdfProt = document.getElementById('pdf-nutr-protein');
+    const pdfCarb = document.getElementById('pdf-nutr-carbs');
+    const pdfFat = document.getElementById('pdf-nutr-fat');
+    const pdfNutrBox = document.getElementById('pdf-nutrition-row-box');
+
+    if (!pdfTemplate) {
+        console.error("PDF printable template element not found!");
+        showToast("PDF failed. Copying recipe text to clipboard instead!");
+        copyRecipeToClipboard();
+        return;
     }
-    if (rightPanel) {
-        rightPanel.style.overflowY = 'visible';
-        rightPanel.style.maxHeight = 'none';
-    }
+
+    // 2. Populate the template with current recipe data
+    if (pdfTitle) pdfTitle.textContent = r.title;
     
+    const chefBadges = {
+        budget: { emoji: "🍳", text: "Plated by Thrifty Chef Tony" },
+        grandma: { emoji: "👵", text: "Plated by Grandma Marie" },
+        chef: { emoji: "👨‍🍳", text: "Plated by Chef Pierre" },
+        chloe: { emoji: "🥗", text: "Plated by Healthy Chef Chloe" }
+    };
+    const badgeInfo = chefBadges[r.selected_personality] || chefBadges.grandma;
+    if (pdfByline) pdfByline.innerHTML = `<span class="badge-emoji">${badgeInfo.emoji}</span> ${badgeInfo.text}`;
+    
+    // Set accurate image
+    if (pdfPhoto) {
+        let currentImgSrc = DOM.dishPhotoImg ? DOM.dishPhotoImg.getAttribute('src') : null;
+        if (!currentImgSrc || (!currentImgSrc.startsWith('http') && !currentImgSrc.startsWith('data:image'))) {
+            currentImgSrc = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80";
+        }
+        pdfPhoto.src = currentImgSrc;
+    }
+
+    if (pdfNarrative) pdfNarrative.textContent = r.personality_intro;
+    
+    const chefTipTitles = {
+        budget: "Tony's Frugal Tip",
+        grandma: "Grandma's Secret Tip",
+        chef: "Pierre's Master Tip",
+        chloe: "Chloe's Fitness Tip"
+    };
+    if (pdfTipHeader) pdfTipHeader.textContent = `💡 ${chefTipTitles[r.selected_personality] || "Chef's Secret Tip"}`;
+    if (pdfTipText) pdfTipText.textContent = r.chef_tip;
+    
+    if (pdfTime) pdfTime.textContent = `⏱️ ${r.cooking_time || "20 mins"}`;
+    if (pdfDifficulty) pdfDifficulty.textContent = `⭐️ ${r.difficulty || "Easy"}`;
+
+    // Populate Ingredients
+    if (pdfIngredients) {
+        pdfIngredients.innerHTML = '';
+        r.ingredients.forEach(ing => {
+            const li = document.createElement('li');
+            const origin = ing.is_user_ingredient ? "(in fridge)" : "(needed)";
+            li.textContent = ing.amount ? `${ing.amount} ${ing.name} ${origin}` : `${ing.name} ${origin}`;
+            pdfIngredients.appendChild(li);
+        });
+    }
+
+    // Populate Steps
+    if (pdfSteps) {
+        pdfSteps.innerHTML = '';
+        r.steps.forEach(step => {
+            const li = document.createElement('li');
+            li.textContent = step;
+            pdfSteps.appendChild(li);
+        });
+    }
+
+    // Populate Nutrition (with safe fallback)
+    if (r.nutrition) {
+        let calVal = r.nutrition.calories;
+        if (calVal) {
+            const calStr = String(calVal).trim();
+            calVal = calStr.toLowerCase().includes('kcal') ? calStr : `${calStr} kcal`;
+        } else {
+            calVal = "-";
+        }
+        if (pdfCal) pdfCal.innerHTML = `🔥 <strong>${calVal}</strong>`;
+        if (pdfProt) pdfProt.innerHTML = `🥩 <strong>${r.nutrition.protein || "-"}</strong> Prot`;
+        if (pdfCarb) pdfCarb.innerHTML = `🍞 <strong>${r.nutrition.carbs || "-"}</strong> Carbs`;
+        if (pdfFat) pdfFat.innerHTML = `🧈 <strong>${r.nutrition.fat || "-"}</strong> Fat`;
+        if (pdfNutrBox) pdfNutrBox.style.display = 'flex';
+    } else {
+        if (pdfNutrBox) pdfNutrBox.style.display = 'none';
+    }
+
+    // 3. Temporarily make printable template active for html2pdf renderer
+    pdfTemplate.classList.add('active-render');
+
     const opt = {
-        margin:       [0.25, 0.25, 0.25, 0.25],
+        margin:       [0.15, 0.15, 0.15, 0.15],
         filename:     `${r.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { 
@@ -1255,21 +1340,18 @@ function downloadRecipeAsPDF() {
         jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
     };
     
-    // Generate and save PDF using html2pdf.js
-    html2pdf().set(opt).from(element).save()
+    // 4. Generate and save landscape PDF
+    html2pdf().set(opt).from(pdfTemplate).save()
         .then(() => {
-            // Restore scroll properties
-            if (leftPanel) leftPanel.style.overflowY = origLeftOverflow;
-            if (rightPanel) rightPanel.style.overflowY = origRightOverflow;
+            // Restore hidden state instantly
+            pdfTemplate.classList.remove('active-render');
             showToast("Recipe card saved successfully! 🍳✨");
         })
         .catch(err => {
-            console.error("PDF Error: ", err);
-            // Restore scroll properties
-            if (leftPanel) leftPanel.style.overflowY = origLeftOverflow;
-            if (rightPanel) rightPanel.style.overflowY = origRightOverflow;
-            
-            showToast("Could not download PDF. Copying recipe text to clipboard instead!");
+            console.error("PDF generation failed:", err);
+            // Restore hidden state instantly
+            pdfTemplate.classList.remove('active-render');
+            showToast("PDF failed. Copying recipe text instead!");
             copyRecipeToClipboard();
         });
 }

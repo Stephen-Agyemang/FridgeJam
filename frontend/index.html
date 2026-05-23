@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     
     <!-- Emoji Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍🍳</text></svg>">
@@ -350,30 +350,13 @@
                         <span class="stat-pill" id="recipe-stat-difficulty">⭐️ Easy</span>
                     </div>
                     
-                    <!-- Nutrition Information Card -->
-                    <div class="recipe-nutrition-card" id="recipe-nutrition-card">
-                        <div class="nutrition-header">
-                            <span class="nutrition-title">⚡ Nutrition Facts</span>
-                            <span class="nutrition-serving">per serving</span>
-                        </div>
-                        <div class="nutrition-grid">
-                            <div class="nutrition-item">
-                                <span class="nutrition-value" id="nutr-calories">-</span>
-                                <span class="nutrition-label">Calories</span>
-                            </div>
-                            <div class="nutrition-item">
-                                <span class="nutrition-value" id="nutr-protein">-</span>
-                                <span class="nutrition-label">Protein</span>
-                            </div>
-                            <div class="nutrition-item">
-                                <span class="nutrition-value" id="nutr-carbs">-</span>
-                                <span class="nutrition-label">Carbs</span>
-                            </div>
-                            <div class="nutrition-item">
-                                <span class="nutrition-value" id="nutr-fat">-</span>
-                                <span class="nutrition-label">Fat</span>
-                            </div>
-                        </div>
+                    <!-- Compact Nutrition Bar (Saves Massive Vertical Space!) -->
+                    <div class="recipe-nutrition-bar" id="recipe-nutrition-card">
+                        <span class="nutrition-bar-title">⚡ Nutrition:</span>
+                        <span class="nutrition-pill" id="nutr-calories">-</span>
+                        <span class="nutrition-pill" id="nutr-protein">- Prot</span>
+                        <span class="nutrition-pill" id="nutr-carbs">- Carbs</span>
+                        <span class="nutrition-pill" id="nutr-fat">- Fat</span>
                     </div>
                     
                     <!-- Ingredients List (Check circle vs Plus circle row pills) -->
@@ -440,6 +423,74 @@
         </div>
     </div>
 
+    <!-- Dedicated Landscape PDF Cookbook Print Template (Hidden on Screen) -->
+    <div id="recipe-pdf-template" class="pdf-print-template">
+        <div class="pdf-card-header">
+            <h1 id="pdf-recipe-title" class="pdf-title">-</h1>
+            <div class="pdf-chef-byline" id="pdf-recipe-byline">🍳 Plated by Grandma Marie</div>
+        </div>
+        
+        <div class="pdf-card-divider"></div>
+        
+        <div class="pdf-card-body">
+            <!-- Left Column: Visuals, Bio, Narrative & Tip -->
+            <div class="pdf-left-column">
+                <div class="pdf-photo-wrapper">
+                    <img id="pdf-dish-photo" src="" alt="Dish Photo" class="pdf-photo" crossorigin="anonymous">
+                </div>
+                
+                <div class="pdf-narrative-box">
+                    <p id="pdf-narrative-text">-</p>
+                </div>
+                
+                <div class="pdf-tip-box">
+                    <strong id="pdf-tip-header-title">💡 Grandma's Secret Tip</strong>
+                    <p id="pdf-tip-text">-</p>
+                </div>
+            </div>
+            
+            <!-- Right Column: Stats, Ingredients, Steps & Nutrition -->
+            <div class="pdf-right-column">
+                <!-- Stats Row -->
+                <div class="pdf-stats-row">
+                    <span class="pdf-stat-pill" id="pdf-stat-time">⏱️ -</span>
+                    <span class="pdf-stat-pill" id="pdf-stat-difficulty">⭐️ -</span>
+                </div>
+                
+                <!-- Ingredients Section -->
+                <div class="pdf-section">
+                    <h3 class="pdf-section-title">Ingredients</h3>
+                    <ul id="pdf-ingredients-list" class="pdf-ingredients-list">
+                        <!-- Populated dynamically -->
+                    </ul>
+                </div>
+                
+                <!-- Preparation Section -->
+                <div class="pdf-section">
+                    <h3 class="pdf-section-title">Preparation</h3>
+                    <ol id="pdf-steps-list" class="pdf-steps-list">
+                        <!-- Populated dynamically -->
+                    </ol>
+                </div>
+                
+                <!-- Nutrition Row -->
+                <div class="pdf-nutrition-row" id="pdf-nutrition-row-box">
+                    <strong>⚡ Nutrition Facts (per serving):</strong>
+                    <div class="pdf-nutrition-grid">
+                        <span class="pdf-nutrition-pill calories-pill" id="pdf-nutr-calories">-</span>
+                        <span class="pdf-nutrition-pill protein-pill" id="pdf-nutr-protein">- Prot</span>
+                        <span class="pdf-nutrition-pill carbs-pill" id="pdf-nutr-carbs">- Carbs</span>
+                        <span class="pdf-nutrition-pill fat-pill" id="pdf-nutr-fat">- Fat</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="pdf-card-footer">
+            <p>Printed with love from FridgeChef. Keep cooking zero-waste! 👨‍🍳</p>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div class="toast hidden" id="app-toast" role="alert">
         <p class="toast-text" id="toast-text-msg">Recipe copied to clipboard!</p>
@@ -450,6 +501,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Custom Script -->
-    <script src="app.js"></script>
+    <script src="app.js?v=2"></script>
 </body>
 </html>
