@@ -1183,15 +1183,15 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
 /* --- STEP 3: Dining Room Plated Recipe Details (Cozy Single-Column) --- */
 
 .recipe-container {
-  max-width: 1080px;
+  max-width: 940px; /* Snugger and cozy width (down from 1080px) */
   width: 95%;
-  height: calc(100vh - 130px);
-  max-height: 780px;
-  min-height: 560px;
+  height: calc(100vh - 160px); /* Snugger height (down from calc(100vh - 130px)) */
+  max-height: 660px; /* Snugger max-height (down from 780px) */
+  min-height: 520px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   position: relative;
   z-index: 10;
 }
@@ -1265,7 +1265,7 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
 .recipe-photo-header {
   position: relative;
   width: 100%;
-  min-height: 328px; /* ensures it never collapses: 300px image + 28px padding */
+  min-height: 258px; /* ensures it never collapses: 230px image + 28px padding */
   border: 2.5px solid #25283D;
   border-radius: 20px;
   background: #ffffff;
@@ -1277,7 +1277,7 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
 
 .dish-photo {
   width: 100%;
-  height: 300px;
+  height: 230px; /* Snugger height (down from 300px) */
   object-fit: cover;
   border: 2.5px solid #25283D;
   border-radius: 14px;
@@ -1286,7 +1286,7 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
 
 .dish-photo-fallback-container {
   width: 100%;
-  height: 300px;
+  height: 230px; /* Snugger height (down from 300px) */
   display: flex;
   flex-direction: column;
   justify-content: center;

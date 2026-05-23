@@ -1209,6 +1209,71 @@ function renderRecipeScreen(recipe, imageResult) {
 }
 
 // --- Share Integration ---
+function downloadRecipeAsPDF() {
+    if (!appState.currentRecipe) return;
+    const r = appState.currentRecipe;
+    
+    // Ask for explicit permission
+    const confirmDownload = confirm(`Chef, would you like to save "${r.title}" as a beautiful PDF recipe card to your computer?`);
+    if (!confirmDownload) {
+        showToast("PDF download canceled.");
+        return;
+    }
+    
+    showToast("Preparing your PDF recipe card... 🍳");
+    if (synth && typeof synth.playDialClick === 'function') {
+        synth.playDialClick(); // play cute sound
+    }
+
+    const element = document.getElementById('card-overlay-content');
+    const leftPanel = document.querySelector('.recipe-left-panel');
+    const rightPanel = document.querySelector('.recipe-right-panel');
+    
+    // Temporarily expand scroll overflow height limits so html2canvas renders complete lists
+    const origLeftOverflow = leftPanel ? leftPanel.style.overflowY : '';
+    const origRightOverflow = rightPanel ? rightPanel.style.overflowY : '';
+    
+    if (leftPanel) {
+        leftPanel.style.overflowY = 'visible';
+        leftPanel.style.maxHeight = 'none';
+    }
+    if (rightPanel) {
+        rightPanel.style.overflowY = 'visible';
+        rightPanel.style.maxHeight = 'none';
+    }
+    
+    const opt = {
+        margin:       [0.25, 0.25, 0.25, 0.25],
+        filename:     `${r.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { 
+            scale: 2, 
+            useCORS: true, 
+            logging: false,
+            backgroundColor: '#FAF7F0'
+        },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+    };
+    
+    // Generate and save PDF using html2pdf.js
+    html2pdf().set(opt).from(element).save()
+        .then(() => {
+            // Restore scroll properties
+            if (leftPanel) leftPanel.style.overflowY = origLeftOverflow;
+            if (rightPanel) rightPanel.style.overflowY = origRightOverflow;
+            showToast("Recipe card saved successfully! 🍳✨");
+        })
+        .catch(err => {
+            console.error("PDF Error: ", err);
+            // Restore scroll properties
+            if (leftPanel) leftPanel.style.overflowY = origLeftOverflow;
+            if (rightPanel) rightPanel.style.overflowY = origRightOverflow;
+            
+            showToast("Could not download PDF. Copying recipe text to clipboard instead!");
+            copyRecipeToClipboard();
+        });
+}
+
 function copyRecipeToClipboard() {
     if (!appState.currentRecipe) return;
     
@@ -1409,9 +1474,9 @@ function initEvents() {
         });
     }
 
-    // Share Button click
+    // Share Button click (PDF download with copy fallback)
     if (DOM.recipeShareBtn) {
-        DOM.recipeShareBtn.addEventListener('click', copyRecipeToClipboard);
+        DOM.recipeShareBtn.addEventListener('click', downloadRecipeAsPDF);
     }
     
     // Modal Backdrop click

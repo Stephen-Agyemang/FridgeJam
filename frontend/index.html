@@ -300,7 +300,7 @@
                 <div class="recipe-left-panel">
                     <!-- Polaroid Photo Frame & Badge -->
                     <div class="recipe-photo-header">
-                        <img id="dish-photo-img" src="" alt="Beautifully prepared dish" class="dish-photo hidden">
+                        <img id="dish-photo-img" src="" alt="Beautifully prepared dish" class="dish-photo hidden" crossorigin="anonymous">
                         
                         <!-- Fallback Presentation -->
                         <div id="dish-photo-fallback" class="dish-photo-fallback-container">
@@ -445,6 +445,9 @@
         <p class="toast-text" id="toast-text-msg">Recipe copied to clipboard!</p>
         <button id="toast-dismiss" class="toast-dismiss" aria-label="Dismiss">✕</button>
     </div>
+
+    <!-- PDF Generation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Custom Script -->
     <script src="app.js"></script>
