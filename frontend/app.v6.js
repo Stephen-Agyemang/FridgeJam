@@ -556,26 +556,26 @@ function stopCookingAnimation() {
 // ─────────────────────────────────────────
 
 const FOOD_JOKES = [
-    { setup: "Why did the tomato turn red?", punchline: "Because it saw the salad dressing! 🥗" },
-    { setup: "What do you call a stolen yam?", punchline: "A hot potato! 🥔" },
-    { setup: "Why did the baker stop making donuts?", punchline: "He was sick of the hole business! 🍩" },
-    { setup: "What do you call cheese that isn't yours?", punchline: "Nacho cheese! 🧀" },
-    { setup: "Why did the banana go to the doctor?", punchline: "Because it wasn't peeling well! 🍌" },
-    { setup: "What did the ocean say to the pizza?", punchline: "Nothing, it just waved! 🌊🍕" },
-    { setup: "Why don't eggs tell jokes?", punchline: "They'd crack each other up! 🥚" },
-    { setup: "What do you call a fake noodle?", punchline: "An impasta! 🍝" },
-    { setup: "Why did the cookie go to the doctor?", punchline: "It was feeling crummy! 🍪" },
-    { setup: "What did the lettuce say to the celery?", punchline: "Quit stalking me! 🥬" },
-    { setup: "Why did the grape stop in the middle of the road?", punchline: "Because it ran out of juice! 🍇" },
-    { setup: "What do you call a sad strawberry?", punchline: "A blueberry! 🍓" },
-    { setup: "Why was the mushroom always invited to parties?", punchline: "Because he was a fun-gi! 🍄" },
-    { setup: "What did the sushi say to the bee?", punchline: "Wasabi! 🍣" },
-    { setup: "Why did the student eat his homework?", punchline: "The teacher said it was a piece of cake! 🎂" },
-    { setup: "What do you call a sleeping pizza?", punchline: "A pi-zzz-a! 🍕" },
-    { setup: "Why did the chef get arrested?", punchline: "Because he was caught beating an egg! 🥚" },
-    { setup: "What's a potato's favourite TV show?", punchline: "Starch Trek! 🥔🚀" },
-    { setup: "Why did the orange lose the race?", punchline: "It ran out of juice! 🍊" },
-    { setup: "What did one plate say to the other?", punchline: "Lunch is on me! 🍽️" },
+    { setup: "Why did the tomato turn red?", punchline: "Because it saw the salad dressing! 🥗", keywords: ["dressing", "saw", "salad"] },
+    { setup: "What do you call a stolen yam?", punchline: "A hot potato! 🥔", keywords: ["hot potato", "potato", "hot"] },
+    { setup: "Why did the baker stop making donuts?", punchline: "He was sick of the hole business! 🍩", keywords: ["hole", "whole"] },
+    { setup: "What do you call cheese that isn't yours?", punchline: "Nacho cheese! 🧀", keywords: ["nacho", "not yours"] },
+    { setup: "Why did the banana go to the doctor?", punchline: "Because it wasn't peeling well! 🍌", keywords: ["peel", "peeling", "feeling"] },
+    { setup: "What did the ocean say to the pizza?", punchline: "Nothing, it just waved! 🌊🍕", keywords: ["waved", "wave"] },
+    { setup: "Why don't eggs tell jokes?", punchline: "They'd crack each other up! 🥚", keywords: ["crack", "cracking"] },
+    { setup: "What do you call a fake noodle?", punchline: "An impasta! 🍝", keywords: ["impasta", "imposter"] },
+    { setup: "Why did the cookie go to the doctor?", punchline: "It was feeling crummy! 🍪", keywords: ["crummy", "crumb", "feeling"] },
+    { setup: "What did the lettuce say to the celery?", punchline: "Quit stalking me! 🥬", keywords: ["stalk", "stalking", "stalks"] },
+    { setup: "Why did the grape stop in the middle of the road?", punchline: "Because it ran out of juice! 🍇", keywords: ["juice", "run out", "ran out"] },
+    { setup: "What do you call a sad strawberry?", punchline: "A blueberry! 🍓", keywords: ["blue", "blueberry"] },
+    { setup: "Why was the mushroom always invited to parties?", punchline: "Because he was a fun-gi! 🍄", keywords: ["fun-gi", "fungi", "fun guy"] },
+    { setup: "What did the sushi say to the bee?", punchline: "Wasabi! 🍣", keywords: ["wasabi", "sushi", "bee"] },
+    { setup: "Why did the student eat his homework?", punchline: "The teacher said it was a piece of cake! 🎂", keywords: ["cake", "piece of cake"] },
+    { setup: "What do you call a sleeping pizza?", punchline: "A pi-zzz-a! 🍕", keywords: ["pi-zzz-a", "pizzza", "sleep", "zzz"] },
+    { setup: "Why did the chef get arrested?", punchline: "Because he was caught beating an egg! 🥚", keywords: ["beating", "beat", "egg"] },
+    { setup: "What's a potato's favourite TV show?", punchline: "Starch Trek! 🥔🚀", keywords: ["starch", "trek", "starch trek"] },
+    { setup: "Why did the orange lose the race?", punchline: "It ran out of juice! 🍊", keywords: ["juice", "run out", "orange"] },
+    { setup: "What did one plate say to the other?", punchline: "Lunch is on me! 🍽️", keywords: ["lunch is on me", "lunch", "on me"] }
 ];
 
 let jokeIndex = 0;
@@ -624,12 +624,13 @@ function loadJoke(index) {
     
     const setup     = document.getElementById('joke-setup');
     const punchline = document.getElementById('joke-punchline');
-    const revealBtn = document.getElementById('joke-reveal-btn');
     const nextBtn   = document.getElementById('joke-next-btn');
     const userJokeContainer = document.getElementById('user-joke-container');
     const userJokePrompt = document.getElementById('user-joke-prompt');
     const userJokeInput = document.getElementById('user-joke-input');
     const submitBtn = document.getElementById('btn-submit-user-joke');
+    const guessContainer = document.getElementById('joke-guess-container');
+    const guessInput = document.getElementById('joke-guess-input');
     
     // Wire up submit button event listener exactly once
     if (submitBtn && !submitBtn.dataset.bound) {
@@ -641,7 +642,7 @@ function loadJoke(index) {
     if (jokesViewedCount >= 3) {
         if (setup) setup.textContent = "";
         if (punchline) punchline.classList.add('hidden');
-        if (revealBtn) revealBtn.classList.add('hidden');
+        if (guessContainer) guessContainer.style.display = 'none';
         if (nextBtn) nextBtn.classList.add('hidden');
         
         if (userJokeContainer) {
@@ -667,18 +668,90 @@ function loadJoke(index) {
     const joke = FOOD_JOKES[index % FOOD_JOKES.length];
     if (setup)     setup.textContent = joke.setup;
     if (punchline) { punchline.textContent = joke.punchline; punchline.classList.add('hidden'); }
-    if (revealBtn) revealBtn.classList.remove('hidden');
+    if (guessContainer) {
+        guessContainer.style.display = 'flex';
+        if (guessInput) guessInput.value = "";
+    }
     if (nextBtn)   nextBtn.classList.add('hidden');
+}
+
+function submitJokeGuess() {
+    const inputEl = document.getElementById('joke-guess-input');
+    const punchlineEl = document.getElementById('joke-punchline');
+    const guessContainer = document.getElementById('joke-guess-container');
+    const nextBtn = document.getElementById('joke-next-btn');
+    const setupEl = document.getElementById('joke-setup');
+    
+    if (!inputEl) return;
+    const guessText = inputEl.value.trim().toLowerCase();
+    if (guessText.length < 2) {
+        showToast("Guess something first! 🧠");
+        return;
+    }
+    
+    const joke = FOOD_JOKES[jokeIndex % FOOD_JOKES.length];
+    const keywords = joke.keywords || [];
+    
+    // Check if guess matches any keyword or is extremely close
+    const isCorrect = keywords.some(k => guessText.includes(k.toLowerCase())) || 
+                      guessText.includes(joke.punchline.toLowerCase().replace(/[^a-z0-9]/g, ''));
+    
+    const activePersonality = appState.selectedPersonality || 'grandma';
+    let reactionText = "";
+    
+    if (isCorrect) {
+        if (synth && typeof synth.playSuccessBeep === 'function') {
+            synth.playSuccessBeep();
+            setTimeout(() => synth.playSuccessBeep(), 150);
+        }
+        
+        const correctReactions = {
+            budget: `Boom! Spot on! You saved those brain calories: "${joke.punchline}" 💰`,
+            grandma: `Oh sweetheart, you got it! Grandma is so proud of you: "${joke.punchline}" 👵❤️`,
+            chef: `Magnifique! Absolute culinary perfection! You guessed it: "${joke.punchline}" 👨‍🍳✨`,
+            chloe: `BOOM! Clean pun power! Spot on guess: "${joke.punchline}"! Keep that energy up! 🥗💪`
+        };
+        reactionText = correctReactions[activePersonality] || correctReactions.grandma;
+    } else {
+        if (synth && typeof synth.playDialClick === 'function') {
+            synth.playDialClick();
+        }
+        
+        const incorrectReactions = {
+            budget: `Nice try, but that guess is worth about two cents! The real answer is: "${joke.punchline}" 🧀`,
+            grandma: `Oh bless your sweet heart, that's not quite it honey, but I love the creative thinking! The real answer is: "${joke.punchline}" 👵☕`,
+            chef: `Mon dieu... that guess is like a flat, overcooked soufflé. Tasteless! The real gourmet punchline is: "${joke.punchline}" 🥖`,
+            chloe: `Oof, missed the rep on that guess! Push harder next time. The real punchline is: "${joke.punchline}"! 🥗⚡`
+        };
+        reactionText = incorrectReactions[activePersonality] || incorrectReactions.grandma;
+    }
+    
+    if (setupEl) setupEl.textContent = reactionText;
+    if (guessContainer) guessContainer.style.display = 'none';
+    if (nextBtn) nextBtn.classList.remove('hidden');
 }
 
 function revealPunchline() {
     const joke = FOOD_JOKES[jokeIndex % FOOD_JOKES.length];
-    const punchline = document.getElementById('joke-punchline');
-    const revealBtn = document.getElementById('joke-reveal-btn');
-    const nextBtn   = document.getElementById('joke-next-btn');
-    if (punchline) punchline.classList.remove('hidden');
-    if (revealBtn) revealBtn.classList.add('hidden');
-    if (nextBtn)   nextBtn.classList.remove('hidden');
+    const setupEl = document.getElementById('joke-setup');
+    const guessContainer = document.getElementById('joke-guess-container');
+    const nextBtn = document.getElementById('joke-next-btn');
+    
+    if (synth && typeof synth.playDialClick === 'function') {
+        synth.playDialClick();
+    }
+    
+    const activePersonality = appState.selectedPersonality || 'grandma';
+    const giveUpMessages = {
+        budget: `Smart, save that cognitive energy! The answer is: "${joke.punchline}"`,
+        grandma: `No worries, my darling! Here is the punchline: "${joke.punchline}"`,
+        chef: `Ah, the mystery is solved! The gourmet punchline is: "${joke.punchline}"`,
+        chloe: `Resting on this set? Totally fine! The answer is: "${joke.punchline}"`
+    };
+    
+    if (setupEl) setupEl.textContent = giveUpMessages[activePersonality] || giveUpMessages.grandma;
+    if (guessContainer) guessContainer.style.display = 'none';
+    if (nextBtn) nextBtn.classList.remove('hidden');
 }
 
 function nextJoke() {
