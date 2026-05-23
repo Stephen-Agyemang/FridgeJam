@@ -777,13 +777,13 @@ function displayJokeFeedback(isFunny, reactionText) {
 
 // ── Mini Game ──
 function startMiniGame() {
+    stopMiniGame();
     const arena = document.getElementById('game-arena');
     if (!arena) return;
     gameScore = 0; gameStreak = 0;
     gameStartTime = Date.now();
     updateGameUI();
     arena.innerHTML = '';
-    stopMiniGame();
     
     // Start dynamic spawning loop
     gameSpawnLoop();
@@ -1512,20 +1512,30 @@ function downloadRecipeAsPDF() {
         jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
     };
     
-    // 4. Generate and save landscape PDF
-    html2pdf().set(opt).from(pdfTemplate).save()
-        .then(() => {
-            // Restore hidden state instantly
-            pdfTemplate.classList.remove('active-render');
-            showToast("Recipe card saved successfully! 🍳✨");
-        })
-        .catch(err => {
-            console.error("PDF generation failed:", err);
-            // Restore hidden state instantly
-            pdfTemplate.classList.remove('active-render');
-            showToast("PDF failed. Copying recipe text instead!");
-            copyRecipeToClipboard();
-        });
+    // 4. Helper to trigger generation
+    const executePDFGeneration = () => {
+        html2pdf().set(opt).from(pdfTemplate).save()
+            .then(() => {
+                // Restore hidden state instantly
+                pdfTemplate.classList.remove('active-render');
+                showToast("Recipe card saved successfully! 🍳✨");
+            })
+            .catch(err => {
+                console.error("PDF generation failed:", err);
+                // Restore hidden state instantly
+                pdfTemplate.classList.remove('active-render');
+                showToast("PDF failed. Copying recipe text instead!");
+                copyRecipeToClipboard();
+            });
+    };
+
+    // 5. Defer generation if photo is still loading to prevent blank image slots
+    if (pdfPhoto && pdfPhoto.src && !pdfPhoto.complete) {
+        pdfPhoto.onload = executePDFGeneration;
+        pdfPhoto.onerror = executePDFGeneration; // fallback even if image fails
+    } else {
+        executePDFGeneration();
+    }
 }
 
 function copyRecipeToClipboard() {

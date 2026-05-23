@@ -3184,6 +3184,11 @@ body.dark-theme .scan-overlay-content {
 /* Styled with flex during PDF conversion print trigger */
 .pdf-print-template.active-render {
   display: flex !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: -9999 !important; /* Keep it below everything so the user doesn't see a flash */
+  opacity: 1 !important;
 }
 
 .pdf-card-header {
