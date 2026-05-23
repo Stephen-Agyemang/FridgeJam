@@ -216,6 +216,13 @@
                                 <button class="joke-reveal-btn" id="joke-reveal-btn" onclick="revealPunchline()">Tap for punchline 👆</button>
                                 <p class="joke-punchline hidden" id="joke-punchline"></p>
                                 <button class="joke-next-btn hidden" id="joke-next-btn" onclick="nextJoke()">Next joke →</button>
+
+                                <!-- Interactive user-submitted joke flow -->
+                                <div id="user-joke-container" class="hidden" style="display: flex; flex-direction: column; gap: 8px; width: 100%; align-items: center; margin-top: 8px;">
+                                    <p class="user-joke-prompt" id="user-joke-prompt" style="font-size: 0.88rem; font-weight: 600; text-align: center; color: var(--accent-copper);"></p>
+                                    <input type="text" id="user-joke-input" class="user-joke-input" placeholder="Why did the tomato blush?..." style="width: 100%; padding: 10px 14px; border: 2.5px solid var(--input-border); border-radius: var(--radius-md); font-family: var(--font-body); font-size: 0.9rem; background: var(--input-bg); color: var(--text-primary); outline: none;" />
+                                    <button type="button" class="rbe-cook-btn" id="btn-submit-user-joke" style="margin-top: 4px; max-width: 180px; padding: 8px 16px;">Tell the Chef! 🎤</button>
+                                </div>
                             </div>
                         </div>
 
@@ -228,6 +235,7 @@
                             <div class="game-score-bar">
                                 <span>Score: <strong id="game-score">0</strong></span>
                                 <span>Streak: <strong id="game-streak">0</strong> 🔥</span>
+                                <span>Level: <strong id="game-difficulty">Cozy</strong></span>
                             </div>
                             <div class="game-arena" id="game-arena"></div>
                         </div>
@@ -501,6 +509,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Custom Script -->
-    <script src="app.js?v=2"></script>
+    <script src="app.v3.js"></script>
 </body>
 </html>

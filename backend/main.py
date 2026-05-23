@@ -63,6 +63,11 @@ class ImageRequest(BaseModel):
     prompt: str
 
 
+class JokeEvaluationRequest(BaseModel):
+    joke: str
+    personality: str
+
+
 # --- Routes ---
 
 @app.post("/api/recipe")
@@ -239,6 +244,58 @@ async def generate_image(request: ImageRequest):
             "success": False,
             "error": "The chef's sketchbook is misplaced! We couldn't draw a picture of the dish, but the recipe is ready to cook.",
             "image_url": None
+        }
+
+
+@app.post("/api/evaluate-joke")
+async def evaluate_joke(request: JokeEvaluationRequest):
+    """Evaluate a user's joke and react in the chef's voice (funny laugh or blunt-but-caring feedback)."""
+    joke_text = request.joke.strip()
+    if not joke_text:
+        raise HTTPException(status_code=400, detail="Chef, please type something before telling your joke!")
+
+    personality_key = request.personality.lower()
+    chef_names = {
+        "budget": "Thrifty Chef Tony",
+        "grandma": "Grandma Marie",
+        "chef": "Chef Pierre",
+        "chloe": "Healthy Chef Chloe"
+    }
+    chef_name = chef_names.get(personality_key, "Grandma Marie")
+
+    prompt = f"""
+You are playing the role of {chef_name}, a friendly AI cooking character.
+The user is playing a mini-game waiting for their food, and has decided to tell you a food joke:
+"{joke_text}"
+
+Evaluate their joke. If it is actually a funny food pun/joke, react with genuine amusement and laugh (e.g. "Haha!", "That's a good one!", "Oh my, that's hilarious!").
+If it is NOT funny, or doesn't make sense, or is gibberish, let them know BLUNTLY but in a warm, caring, or playful way that won't hurt their feelings (e.g. "Aha, sweetheart... stick to cooking!", "Pierre is not amused, but I admire the courage!", "Tony has seen cheaper cheese than that joke, but nice try!").
+
+Keep your response extremely short (1 to 3 sentences maximum) and stay 100% in your character's voice.
+Return a simple JSON matching this schema:
+{{
+  "is_funny": true or false,
+  "reaction": "your chef-persona response text here"
+}}
+"""
+
+    try:
+        client = _create_client()
+        response = client.models.generate_content(
+            model=RECIPE_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+            )
+        )
+        data = json.loads(response.text.strip())
+        return data
+    except Exception as e:
+        print(f"Error evaluating joke: {e}")
+        # Graceful fallback response in case Gemini API is down
+        return {
+            "is_funny": True,
+            "reaction": "Haha! That's a tasty attempt, sweetheart! Keep practicing!"
         }
 
 

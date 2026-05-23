@@ -579,11 +579,13 @@ const FOOD_JOKES = [
 ];
 
 let jokeIndex = 0;
-let gameInterval = null;
 let gameScore = 0;
 let gameStreak = 0;
 let entertainChoice = null; // 'jokes' | 'game' | null
 let pendingRecipeData = null; // store finished recipe until user clicks "See My Recipe"
+let jokesViewedCount = 0;
+let gameStartTime = 0;
+let gameSpawnTimeout = null;
 
 const GAME_ITEMS = ['🍅','🥕','🧅','🥦','🍋','🥚','🧄','🌽','🍄','🥑','🍇','🥝','🍓','🫑','🥒'];
 
@@ -618,11 +620,51 @@ function resetEntertainPicker() {
 }
 
 function loadJoke(index) {
-    const joke = FOOD_JOKES[index % FOOD_JOKES.length];
+    jokesViewedCount++;
+    
     const setup     = document.getElementById('joke-setup');
     const punchline = document.getElementById('joke-punchline');
     const revealBtn = document.getElementById('joke-reveal-btn');
     const nextBtn   = document.getElementById('joke-next-btn');
+    const userJokeContainer = document.getElementById('user-joke-container');
+    const userJokePrompt = document.getElementById('user-joke-prompt');
+    const userJokeInput = document.getElementById('user-joke-input');
+    const submitBtn = document.getElementById('btn-submit-user-joke');
+    
+    // Wire up submit button event listener exactly once
+    if (submitBtn && !submitBtn.dataset.bound) {
+        submitBtn.dataset.bound = "true";
+        submitBtn.onclick = submitUserJoke;
+    }
+    
+    // If they viewed at least 3 jokes, prompt them to tell their own joke
+    if (jokesViewedCount >= 3) {
+        if (setup) setup.textContent = "";
+        if (punchline) punchline.classList.add('hidden');
+        if (revealBtn) revealBtn.classList.add('hidden');
+        if (nextBtn) nextBtn.classList.add('hidden');
+        
+        if (userJokeContainer) {
+            userJokeContainer.classList.remove('hidden');
+            if (userJokeInput) userJokeInput.value = "";
+            
+            const chefPromptNames = {
+                budget: "Alright friend, Tony's clean out of jokes! Now it's your turn. Tell me a food joke of your own! 🎤",
+                grandma: "Sweetheart, grandma has told you all her best puns! Now you must tell me one of yours! 👵🎤",
+                chef: "Pierre has plated his best puns! Now it is your turn. Show me your culinary comedy! 👨‍🍳🎤",
+                chloe: "Boom! Clean jokes complete! Your turn to supply the positive energy. Drop a food joke on me! 🥗🎤"
+            };
+            const activePersonality = appState.selectedPersonality || 'grandma';
+            if (userJokePrompt) {
+                userJokePrompt.textContent = chefPromptNames[activePersonality] || chefPromptNames.grandma;
+            }
+        }
+        return;
+    }
+    
+    if (userJokeContainer) userJokeContainer.classList.add('hidden');
+    
+    const joke = FOOD_JOKES[index % FOOD_JOKES.length];
     if (setup)     setup.textContent = joke.setup;
     if (punchline) { punchline.textContent = joke.punchline; punchline.classList.add('hidden'); }
     if (revealBtn) revealBtn.classList.remove('hidden');
@@ -644,21 +686,125 @@ function nextJoke() {
     loadJoke(jokeIndex);
 }
 
+function submitUserJoke() {
+    const inputEl = document.getElementById('user-joke-input');
+    const promptEl = document.getElementById('user-joke-prompt');
+    
+    if (!inputEl) return;
+    const jokeText = inputEl.value.trim();
+    if (jokeText.length < 3) {
+        showToast("Tell me a little more than that, chef! 🍳");
+        return;
+    }
+    
+    showToast("Chef is taste-testing your joke... 🤔");
+    if (promptEl) promptEl.textContent = "Listening carefully...";
+    
+    const activePersonality = appState.selectedPersonality || 'grandma';
+    
+    fetch('/api/evaluate-joke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ joke: jokeText, personality: activePersonality })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("API failed");
+        return res.json();
+    })
+    .then(data => {
+        displayJokeFeedback(data.is_funny, data.reaction);
+    })
+    .catch(err => {
+        console.log("[FridgeChef] Backend joke evaluate failed, using local evaluator...", err);
+        const data = evaluateUserJokeLocally(jokeText, activePersonality);
+        displayJokeFeedback(data.is_funny, data.reaction);
+    });
+}
+
+function evaluateUserJokeLocally(jokeText, personality) {
+    const isFoodRelated = /tomato|egg|lettuce|fridge|banana|pear|cheese|pizza|coffee|cookie|bean|bread|potato|carrot|broccoli|kitchen|cook|eat|bake|fry|pot|pan|onion|garlic|soup|chef/i.test(jokeText);
+    const isFunny = isFoodRelated && jokeText.length > 8;
+    let reaction = "";
+    
+    if (personality === 'chef') {
+        reaction = isFunny 
+            ? `*Hon hon hon!* Magnifique! A delicious pun, my friend! I give it three Michelin stars!` 
+            : `Mon dieu... that joke is like overcooked soufflé. Flat and tasteless, but I admire your courage!`;
+    } else if (personality === 'budget') {
+        reaction = isFunny 
+            ? `Haha! That joke is rich! I love a pun that doesn't cost a dime!` 
+            : `Oof, I've seen cheaper store-brand processed cheese than that joke. Let's keep scanning leftovers, buddy!`;
+    } else if (personality === 'chloe') {
+        reaction = isFunny 
+            ? `BOOM! Clean pun power! That's the exact positive vibe we need! Keep it up!` 
+            : `Alright, that punchline ran out of steam! No worries, push hard on the next rep!`;
+    } else {
+        reaction = isFunny 
+            ? `Oh sweetheart, haha! That is absolutely darling! You've warmed this old grandma's heart!` 
+            : `Oh bless your sweet heart... that joke was a bit dry, like my last loaf of cornbread. Stick to cooking, honey!`;
+    }
+    return { is_funny: isFunny, reaction: reaction };
+}
+
+function displayJokeFeedback(isFunny, reactionText) {
+    const setupEl = document.getElementById('joke-setup');
+    const containerEl = document.getElementById('user-joke-container');
+    const nextBtn = document.getElementById('joke-next-btn');
+    
+    if (containerEl) containerEl.classList.add('hidden');
+    if (setupEl) setupEl.textContent = reactionText;
+    
+    if (synth && typeof synth.playSuccessBeep === 'function') {
+        if (isFunny) {
+            synth.playSuccessBeep();
+            setTimeout(() => synth.playSuccessBeep(), 150);
+        } else {
+            synth.playDialClick();
+        }
+    }
+    
+    if (nextBtn) {
+        nextBtn.textContent = "Tell more jokes →";
+        nextBtn.classList.remove('hidden');
+        nextBtn.onclick = () => {
+            jokesViewedCount = 0; // reset joke count
+            nextJoke(); // load a new standard joke
+            nextBtn.onclick = null; // clear override
+            nextBtn.textContent = "Next joke →";
+        };
+    }
+}
+
 // ── Mini Game ──
 function startMiniGame() {
     const arena = document.getElementById('game-arena');
     if (!arena) return;
     gameScore = 0; gameStreak = 0;
+    gameStartTime = Date.now();
     updateGameUI();
     arena.innerHTML = '';
     stopMiniGame();
-    // Spawn a new item every 1.4 seconds
-    gameInterval = setInterval(() => spawnItem(arena), 1400);
-    spawnItem(arena); // immediate first item
+    
+    // Start dynamic spawning loop
+    gameSpawnLoop();
+}
+
+function gameSpawnLoop() {
+    const arena = document.getElementById('game-arena');
+    if (!arena || !gameStartTime) return;
+    
+    spawnItem(arena);
+    
+    const elapsed = (Date.now() - gameStartTime) / 1000;
+    // Spawn rate starts at 1400ms, speeds up by 15ms per second of game time, floors at 450ms
+    const spawnRate = Math.max(450, 1400 - (elapsed * 15));
+    
+    gameSpawnTimeout = setTimeout(gameSpawnLoop, spawnRate);
 }
 
 function stopMiniGame() {
-    if (gameInterval) { clearInterval(gameInterval); gameInterval = null; }
+    if (gameSpawnTimeout) { clearTimeout(gameSpawnTimeout); gameSpawnTimeout = null; }
+    gameStartTime = 0;
     const arena = document.getElementById('game-arena');
     if (arena) arena.innerHTML = '';
 }
@@ -669,7 +815,13 @@ function spawnItem(arena) {
     el.textContent = emoji;
     el.className = 'game-item';
     el.style.left = `${5 + Math.random() * 78}%`;
-    el.style.animationDuration = `${1.6 + Math.random() * 1.2}s`;
+    
+    // Dynamic difficulty: falling speed increases over time (from 1.6s down to 0.5s)
+    const elapsed = gameStartTime ? (Date.now() - gameStartTime) / 1000 : 0;
+    const baseFallSpeed = Math.max(0.5, 1.6 - (elapsed * 0.015));
+    const randomVariance = Math.max(0.2, 1.2 - (elapsed * 0.01));
+    el.style.animationDuration = `${baseFallSpeed + Math.random() * randomVariance}s`;
+    
     el.setAttribute('aria-label', `Catch ${emoji}`);
 
     el.addEventListener('click', () => {
@@ -680,7 +832,6 @@ function spawnItem(arena) {
         setTimeout(() => el.remove(), 300);
     });
 
-    // If it falls off without being caught, reset streak
     el.addEventListener('animationend', () => {
         if (!el.classList.contains('caught')) {
             gameStreak = 0;
@@ -695,15 +846,30 @@ function spawnItem(arena) {
 function updateGameUI() {
     const scoreEl  = document.getElementById('game-score');
     const streakEl = document.getElementById('game-streak');
+    const diffEl   = document.getElementById('game-difficulty');
+    
     if (scoreEl)  scoreEl.textContent = gameScore;
     if (streakEl) streakEl.textContent = gameStreak;
+    
+    if (diffEl) {
+        const elapsed = gameStartTime ? (Date.now() - gameStartTime) / 1000 : 0;
+        let levelStr = "Cozy 🥗";
+        if (elapsed > 45) {
+            levelStr = "CHEF MODE! ⚡🔥";
+        } else if (elapsed > 25) {
+            levelStr = "Spicy! 🌶️";
+        } else if (elapsed > 12) {
+            levelStr = "Simmering ⏱️";
+        }
+        diffEl.textContent = levelStr;
+    }
 }
 
-// ── Reset entertainment zone when loading screen is hidden ──
 function resetEntertainZone() {
     stopMiniGame();
     entertainChoice = null;
     pendingRecipeData = null;
+    jokesViewedCount = 0; // Reset joke interaction count
 
     const ez         = document.getElementById('entertain-zone');
     const picker     = document.getElementById('ez-picker');
@@ -1267,6 +1433,12 @@ function downloadRecipeAsPDF() {
         let currentImgSrc = DOM.dishPhotoImg ? DOM.dishPhotoImg.getAttribute('src') : null;
         if (!currentImgSrc || (!currentImgSrc.startsWith('http') && !currentImgSrc.startsWith('data:image'))) {
             currentImgSrc = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80";
+        }
+        // Cache bust remote Unsplash image URLs to prevent tainted canvas CORS errors
+        if (currentImgSrc.startsWith('http') && !currentImgSrc.includes('data:image')) {
+            const cleanUrl = currentImgSrc.split('&cb=')[0].split('?cb=')[0];
+            const cleanSeparator = cleanUrl.includes('?') ? '&' : '?';
+            currentImgSrc = `${cleanUrl}${cleanSeparator}cb=${new Date().getTime()}`;
         }
         pdfPhoto.src = currentImgSrc;
     }

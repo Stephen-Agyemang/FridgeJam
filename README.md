@@ -2,9 +2,13 @@
 
 Welcome to **FridgeChef**! An interactive, cozy web application built for the GDG Coding Jam (Track 4). FridgeChef transforms random leftovers in your fridge into mouth-watering, personalized recipes using Gemini AI. 
 
-This repository features a fully responsive, state-of-the-art retro-cozy design, dynamic Sound Synthesizer, custom physics-based Leftovers Jar mini-game, and two high-fidelity modern upgrades:
+This repository features a fully responsive, state-of-the-art retro-cozy design, dynamic Sound Synthesizer, custom physics-based Leftovers Jar mini-game, and several high-fidelity modern upgrades:
 - 🥗 **Chef Chloe (Nutritious/Fitness Coach)**: A brand new chef personality specialized in plant-based, keto-friendly, and protein-packed meals in a high-energy motivational voice.
 - 📸 **Magical Fridge Photo Scanner (Multimodal Vision)**: Upload a photo of your fridge, analyze ingredients with `gemini-2.5-flash` in-memory, and watch them animate and drop into the Leftovers Jar as paper slips with realistic bubble sound effects!
+- ⚡ **Accurate Nutrient & Calorie Metrics**: A premium indie macro tracker displaying Calories, Protein, Carbs, and Fat styled in colorful pastel capsule pills.
+- 📄 **Beautiful Landscape PDF Exporters**: Populates a dedicated double-column print layout and downloads a print-ready A4 cookbook sheet using `html2pdf.js` with CORS cache-busting.
+- 🎮 **Dynamic Game Progressive Difficulty**: Mini-game tracks elapsed time, recursively shrinking spawn intervals (down to `450ms`) and acceleration speeds across four difficulty stages (*Cozy 🥗*, *Simmering ⏱️*, *Spicy! 🌶️*, *CHEF MODE! ⚡🔥*).
+- 💬 **Gemini Interactive Joke Reviewer**: After reading three puns, the chef prompts you to tell one back! It analyzes your joke via Gemini in real-time, giving funny laughs or blunt-but-playful reactions in your selected chef's voice with corresponding sound effects.
 
 ---
 
