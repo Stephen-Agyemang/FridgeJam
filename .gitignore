@@ -26,3 +26,4 @@ Thumbs.db
 
 # Firebase cache
 .firebase/
+*firebase-debug.log
