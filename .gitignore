@@ -27,3 +27,11 @@ Thumbs.db
 # Firebase cache
 .firebase/
 *firebase-debug.log
+
+# Scratch scripts & large submission assets
+scratch/
+submission-assets/*.mov
+submission-assets/*.webm
+submission-assets/*.html
+submission-assets/youtube-upload-notes.md
+submission-assets/walkthrough-scenes/
