@@ -1,5 +1,5 @@
 /* ==========================================================
-   FridgeChef Stylesheet — Cozy Pillowy Bold-Border Design
+   FridgeJam Stylesheet — Cozy Pillowy Bold-Border Design
    Adapted from the MoodJar & CodingJam Track4 Showcase
    ========================================================== */
 
@@ -254,22 +254,20 @@ body.dark-theme {
 
 .logo {
   font-family: var(--font-body);
-  font-size: 2.2rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 2.6rem; /* Slightly larger for premium prominence */
+  font-weight: 800; /* Extra bold for maximum clarity */
+  letter-spacing: -0.01em; /* Snug modern spacing */
   margin-bottom: 8px;
   position: relative;
   display: inline-block;
-  background: linear-gradient(135deg, #A8BFE8 0%, #C7BDE8 30%, #E4A4B4 60%, #A8BFE8 100%);
-  background-size: 300% 300%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: title-shimmer 8s ease-in-out infinite, title-float 6s ease-in-out infinite;
+  color: #25283D; /* Highly visible high-contrast signature charcoal instead of faded transparent gradient */
+  text-shadow: 2px 2px 0px #FAF7F0, 4px 4px 0px var(--accent-lavender); /* Pillowy 3D shadow matching retro aesthetic */
+  animation: title-float 6s ease-in-out infinite;
 }
 
 .logo span {
-  font-weight: 300;
+  font-weight: 800;
+  color: var(--accent-copper); /* Highlight "jam" in our signature accent color for distinct branding */
 }
 
 .logo::before, .logo::after {

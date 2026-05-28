@@ -1,5 +1,5 @@
 [project]
-name = "fridgechef-backend"
+name = "fridgejam-backend"
 version = "0.1.0"
 description = "AI-powered Fridge to Recipe Generator"
 requires-python = ">=3.11"
@@ -11,6 +11,7 @@ dependencies = [
     "pillow>=10.0.0",
     "pydantic>=2.0.0",
     "python-multipart>=0.0.29",
+    "slowapi>=0.1.9",
 ]
 
 [[tool.uv.index]]

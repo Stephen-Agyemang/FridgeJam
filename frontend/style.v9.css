@@ -1,5 +1,5 @@
 /* ==========================================================
-   FridgeChef Stylesheet — Cozy Pillowy Bold-Border Design
+   FridgeJam Stylesheet — Cozy Pillowy Bold-Border Design
    Adapted from the MoodJar & CodingJam Track4 Showcase
    ========================================================== */
 
@@ -254,22 +254,20 @@ body.dark-theme {
 
 .logo {
   font-family: var(--font-body);
-  font-size: 2.2rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 2.6rem; /* Slightly larger for premium prominence */
+  font-weight: 800; /* Extra bold for maximum clarity */
+  letter-spacing: -0.01em; /* Snug modern spacing */
   margin-bottom: 8px;
   position: relative;
   display: inline-block;
-  background: linear-gradient(135deg, #A8BFE8 0%, #C7BDE8 30%, #E4A4B4 60%, #A8BFE8 100%);
-  background-size: 300% 300%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: title-shimmer 8s ease-in-out infinite, title-float 6s ease-in-out infinite;
+  color: #25283D; /* Highly visible high-contrast signature charcoal instead of faded transparent gradient */
+  text-shadow: 2px 2px 0px #FAF7F0, 4px 4px 0px var(--accent-lavender); /* Pillowy 3D shadow matching retro aesthetic */
+  animation: title-float 6s ease-in-out infinite;
 }
 
 .logo span {
-  font-weight: 300;
+  font-weight: 800;
+  color: var(--accent-copper); /* Highlight "jam" in our signature accent color for distinct branding */
 }
 
 .logo::before, .logo::after {
@@ -1192,11 +1190,11 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
 /* --- STEP 3: Dining Room Plated Recipe Details (Cozy Single-Column) --- */
 
 .recipe-container {
-  max-width: 940px; /* Snugger and cozy width (down from 1080px) */
+  max-width: 1160px;
   width: 95%;
-  height: calc(100vh - 160px); /* Snugger height (down from calc(100vh - 130px)) */
-  max-height: 660px; /* Snugger max-height (down from 780px) */
-  min-height: 520px;
+  height: calc(100vh - 60px);
+  max-height: 880px;
+  min-height: 580px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -2390,7 +2388,7 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
   align-items: center;
   justify-content: center;
   overflow: hidden; /* no global page scroll on desktop */
-  padding: 40px 24px;
+  padding: 20px 24px;
   background-color: #C5BBE3; /* Cozy lavender background */
   background-image: radial-gradient(#ffffff 15%, transparent 16%);
   background-size: 24px 24px; /* sugar sprinkles pattern */
@@ -3319,14 +3317,20 @@ body.dark-theme .scan-overlay-content {
 
 .pdf-ingredients-list, .pdf-steps-list {
   margin: 0;
-  padding-left: 14px;
-  font-size: 0.7rem;
-  line-height: 1.25;
+  padding-left: 18px;
+  font-size: 0.88rem;
+  line-height: 1.35;
   color: #25283D;
+  list-style-position: outside;
 }
 
 .pdf-ingredients-list li, .pdf-steps-list li {
-  margin-bottom: 1px;
+  margin-bottom: 2px;
+  padding-left: 2px;
+}
+
+.pdf-steps-list {
+  padding-left: 20px;
 }
 
 .pdf-nutrition-row {

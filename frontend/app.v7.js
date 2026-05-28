@@ -1,4 +1,4 @@
-/* FridgeChef — Premium Frontend Logic & State Machine */
+/* FridgeJam — Premium Frontend Logic & State Machine */
 
 // --- Sound Effects Synthesizer using Web Audio API ---
 class KitchenSynth {
@@ -788,7 +788,7 @@ function submitUserJoke() {
         displayJokeFeedback(data.is_funny, data.reaction);
     })
     .catch(err => {
-        console.log("[FridgeChef] Backend joke evaluate failed, using local evaluator...", err);
+        console.log("[FridgeJam] Backend joke evaluate failed, using local evaluator...", err);
         const data = evaluateUserJokeLocally(jokeText, activePersonality);
         displayJokeFeedback(data.is_funny, data.reaction);
     });
@@ -1493,9 +1493,9 @@ function downloadRecipeAsPDF() {
     if (pdfTitle) pdfTitle.textContent = r.title;
     
     const chefBadges = {
-        budget: { emoji: "🍳", text: "Plated by Thrifty Chef Tony" },
+        budget: { emoji: "🥄", text: "Plated by Thrifty Chef Tony" },
         grandma: { emoji: "👵", text: "Plated by Grandma Marie" },
-        chef: { emoji: "👨‍🍳", text: "Plated by Chef Pierre" },
+        chef: { emoji: "🍽️", text: "Plated by Chef Pierre" },
         chloe: { emoji: "🥗", text: "Plated by Healthy Chef Chloe" }
     };
     const badgeInfo = chefBadges[r.selected_personality] || chefBadges.grandma;
@@ -1516,8 +1516,11 @@ function downloadRecipeAsPDF() {
         pdfPhoto.src = currentImgSrc;
     }
 
-    if (pdfNarrative) pdfNarrative.textContent = r.personality_intro;
-    
+    if (pdfNarrative) {
+        const intro = r.personality_intro || '';
+        pdfNarrative.textContent = intro.length > 220 ? intro.substring(0, 217) + '...' : intro;
+    }
+
     const chefTipTitles = {
         budget: "Tony's Frugal Tip",
         grandma: "Grandma's Secret Tip",
@@ -1525,7 +1528,10 @@ function downloadRecipeAsPDF() {
         chloe: "Chloe's Fitness Tip"
     };
     if (pdfTipHeader) pdfTipHeader.textContent = `💡 ${chefTipTitles[r.selected_personality] || "Chef's Secret Tip"}`;
-    if (pdfTipText) pdfTipText.textContent = r.chef_tip;
+    if (pdfTipText) {
+        const tip = r.chef_tip || '';
+        pdfTipText.textContent = tip.length > 180 ? tip.substring(0, 177) + '...' : tip;
+    }
     
     if (pdfTime) pdfTime.textContent = `⏱️ ${r.cooking_time || "20 mins"}`;
     if (pdfDifficulty) pdfDifficulty.textContent = `⭐️ ${r.difficulty || "Easy"}`;
@@ -1569,6 +1575,25 @@ function downloadRecipeAsPDF() {
         if (pdfNutrBox) pdfNutrBox.style.display = 'none';
     }
 
+    // 3a. Auto-shrink list font size if the right column overflows the available card height
+    const pdfCardBody = pdfTemplate.querySelector('.pdf-card-body');
+    const pdfRightColumn = pdfTemplate.querySelector('.pdf-right-column');
+    const pdfLists = pdfTemplate.querySelectorAll('.pdf-ingredients-list, .pdf-steps-list');
+    if (pdfCardBody && pdfRightColumn && pdfLists.length) {
+        let fontSizeRem = 0.65;
+        const minFontRem = 0.44;
+        // Compare right column's natural scroll height against card body's available height.
+        // Using pdfRightColumn.scrollHeight (not cardBody) so left column height doesn't cause
+        // the loop to shrink right column fonts unnecessarily.
+        while (pdfRightColumn.scrollHeight > pdfCardBody.clientHeight + 2 && fontSizeRem > minFontRem) {
+            fontSizeRem = Math.round((fontSizeRem - 0.02) * 100) / 100;
+            pdfLists.forEach(l => {
+                l.style.fontSize = `${fontSizeRem}rem`;
+                l.style.lineHeight = fontSizeRem < 0.56 ? '1.1' : '1.2';
+            });
+        }
+    }
+
     // 3. Configuration options with strict scroll reset coordinates for html2canvas
     const opt = {
         margin:       [0.15, 0.15, 0.15, 0.15],
@@ -1587,11 +1612,19 @@ function downloadRecipeAsPDF() {
     
     // 4. Helper to trigger generation
     const executePDFGeneration = () => {
+        const resetListStyles = () => {
+            pdfTemplate.querySelectorAll('.pdf-ingredients-list, .pdf-steps-list').forEach(l => {
+                l.style.fontSize = '';
+                l.style.lineHeight = '';
+            });
+        };
         html2pdf().set(opt).from(pdfTemplate).save()
             .then(() => {
+                resetListStyles();
                 showToast("Recipe card saved successfully! 🍳✨");
             })
             .catch(err => {
+                resetListStyles();
                 console.error("PDF generation failed:", err);
                 showToast("PDF failed. Copying recipe text instead!");
                 copyRecipeToClipboard();
@@ -1613,7 +1646,7 @@ function copyRecipeToClipboard() {
     const r = appState.currentRecipe;
     
     // Construct rich text string representation
-    let formattedText = `🍳 FridgeChef Recipe: ${r.title}\n`;
+    let formattedText = `🍳 FridgeJam Recipe: ${r.title}\n`;
     formattedText += `⏱️ Time: ${r.cooking_time} | 📈 Level: ${r.difficulty}\n\n`;
     formattedText += `"${r.personality_intro}"\n\n`;
     formattedText += `📋 INGREDIENTS:\n`;
@@ -1626,7 +1659,7 @@ function copyRecipeToClipboard() {
         formattedText += `${idx + 1}. ${step}\n`;
     });
     formattedText += `\n✨ CHEF'S TIP:\n"${r.chef_tip}"\n\n`;
-    formattedText += `Plated with love via FridgeChef. Keep cooking zero waste!`;
+    formattedText += `Plated with love via FridgeJam. Keep cooking zero waste!`;
 
     navigator.clipboard.writeText(formattedText)
         .then(() => showToast("Recipe copied to clipboard! Share it with friends!"))

@@ -1,4 +1,4 @@
-"""FridgeChef — FastAPI server with Gemini AI and Imagen integration."""
+"""FridgeJam — FastAPI server with Gemini AI and Imagen integration."""
 
 import json
 import os
@@ -7,12 +7,16 @@ from io import BytesIO
 from typing import Optional
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 try:
     from backend.prompts import SYSTEM_PROMPT, PERSONALITY_PROMPTS
@@ -21,12 +25,20 @@ except ImportError:
 
 load_dotenv()
 
-app = FastAPI(title="FridgeChef")
+limiter = Limiter(key_func=get_remote_address)
+app = FastAPI(title="FridgeJam")
+app.state.limiter = limiter
 
-# Enable CORS for local testing
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(_request: Request, _exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Too many requests — slow down, chef! Try again in a minute."},
+    )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://fridgejam.web.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -71,18 +83,25 @@ class JokeEvaluationRequest(BaseModel):
 # --- Routes ---
 
 @app.post("/api/recipe")
-async def generate_recipe(request: RecipeRequest):
+@limiter.limit("10/minute")
+async def generate_recipe(request: Request, body: RecipeRequest):
     """Generate a personalized recipe based on user ingredients and selected chef personality."""
     
-    ingredients_text = request.ingredients.strip()
+    ingredients_text = body.ingredients.strip()
     if len(ingredients_text) < 2:
         raise HTTPException(
             status_code=400,
             detail="Please list at least one ingredient so the chef can work their magic!",
         )
 
+    if len(ingredients_text) > 2000:
+        raise HTTPException(
+            status_code=400,
+            detail="The chef's counter is overflowing! Please limit your ingredients list to 2000 characters.",
+        )
+
     # Sanitize and select personality prompt
-    personality_key = request.personality.lower()
+    personality_key = body.personality.lower()
     if personality_key not in PERSONALITY_PROMPTS:
         personality_key = "grandma"  # Default fallback
     
@@ -143,17 +162,32 @@ Create a single incredible dish that highlights these ingredients. Return ONLY t
 
 
 @app.post("/api/scan")
-async def scan_fridge(file: UploadFile = File(...)):
+@limiter.limit("10/minute")
+async def scan_fridge(request: Request, file: UploadFile = File(...)):
     """Analyze a photo of the fridge to detect ingredients using Gemini 2.5 Flash."""
     try:
         image_bytes = await file.read()
         if not image_bytes:
             raise HTTPException(status_code=400, detail="Empty image file uploaded.")
             
-        from PIL import Image
+        # Limit image upload size to 10MB to protect memory
+        MAX_FILE_SIZE = 10 * 1024 * 1024
+        if len(image_bytes) > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=400,
+                detail="The uploaded image is too large! Please upload a photo smaller than 10MB.",
+            )
+            
+        from PIL import Image, UnidentifiedImageError
         from io import BytesIO
         
-        image = Image.open(BytesIO(image_bytes))
+        try:
+            image = Image.open(BytesIO(image_bytes))
+        except UnidentifiedImageError:
+            raise HTTPException(
+                status_code=400,
+                detail="The uploaded file does not appear to be a valid image format. Please upload a JPEG or PNG photo.",
+            )
         
         client = _create_client()
         prompt = (
@@ -185,10 +219,11 @@ async def scan_fridge(file: UploadFile = File(...)):
 
 
 @app.post("/api/image")
-async def generate_image(request: ImageRequest):
+@limiter.limit("10/minute")
+async def generate_image(request: Request, body: ImageRequest):
     """Generate an image using Imagen 3. Returns base64 JPEG or success=False if not available."""
     
-    prompt = request.prompt.strip()
+    prompt = body.prompt.strip()
     if not prompt:
         raise HTTPException(status_code=400, detail="Image prompt cannot be empty")
 
@@ -248,13 +283,20 @@ async def generate_image(request: ImageRequest):
 
 
 @app.post("/api/evaluate-joke")
-async def evaluate_joke(request: JokeEvaluationRequest):
+@limiter.limit("20/minute")
+async def evaluate_joke(request: Request, body: JokeEvaluationRequest):
     """Evaluate a user's joke and react in the chef's voice (funny laugh or blunt-but-caring feedback)."""
-    joke_text = request.joke.strip()
+    joke_text = body.joke.strip()
     if not joke_text:
         raise HTTPException(status_code=400, detail="Chef, please type something before telling your joke!")
 
-    personality_key = request.personality.lower()
+    if len(joke_text) > 500:
+        raise HTTPException(
+            status_code=400,
+            detail="That's a very long story, chef! Please tell a short joke (under 500 characters).",
+        )
+
+    personality_key = body.personality.lower()
     chef_names = {
         "budget": "Thrifty Chef Tony",
         "grandma": "Grandma Marie",
