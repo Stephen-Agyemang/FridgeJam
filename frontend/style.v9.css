@@ -3064,6 +3064,13 @@ body.resizing-drawer * {
 }
 
 /* --- Fridge Photo Scanner & Glassmorphic Scanner Overlay --- */
+.scan-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
 .btn-scan-photo {
   background: #FAF7F0; /* cozy eggshell */
   border: 2px solid #25283D;
