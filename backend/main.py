@@ -19,7 +19,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 try:
-    from backend.prompts import SYSTEM_PROMPT, PERSONALITY_PROMPTS
+    from backend.prompts import SYSTEM_PROMPT, PERSONALITY_PROMPTS  # type: ignore
 except ImportError:
     from prompts import SYSTEM_PROMPT, PERSONALITY_PROMPTS
 
@@ -78,6 +78,11 @@ class ImageRequest(BaseModel):
 class JokeEvaluationRequest(BaseModel):
     joke: str
     personality: str
+
+
+class MealPlanRequest(BaseModel):
+    ingredients: Optional[str] = ""
+    personality: str = "grandma"
 
 
 # --- Routes ---
@@ -210,6 +215,8 @@ async def scan_fridge(request: Request, file: UploadFile = File(...)):
         
         return {"ingredients": ingredients}
         
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error scanning fridge photo: {e}")
         raise HTTPException(
@@ -339,6 +346,64 @@ Return a simple JSON matching this schema:
             "is_funny": True,
             "reaction": "Haha! That's a tasty attempt, sweetheart! Keep practicing!"
         }
+
+
+@app.post("/api/meal-plan")
+@limiter.limit("5/minute")
+async def generate_meal_plan(request: Request, body: MealPlanRequest):  # noqa: ARG001 — required by slowapi
+    """Generate a 7-day meal plan suggestion using Gemini."""
+    ingredients_hint = body.ingredients.strip() if body.ingredients else ""
+    personality_key = body.personality.lower()
+    chef_names = {
+        "budget": "Thrifty Chef Tony",
+        "grandma": "Grandma Marie",
+        "chef": "Chef Pierre",
+        "chloe": "Healthy Chef Chloe"
+    }
+    chef_name = chef_names.get(personality_key, "Grandma Marie")
+    ingredients_section = f"\nAvailable fridge ingredients to incorporate: {ingredients_hint}" if ingredients_hint else ""
+
+    prompt = f"""You are {chef_name}, a friendly AI cooking character.
+
+Generate a balanced, varied 7-day home meal plan.{ingredients_section}
+
+Return ONLY a JSON array with exactly 7 objects, one per day of the week, in this exact format:
+[
+  {{
+    "day": "Monday",
+    "meal_name": "Recipe Title Here",
+    "description": "One cozy sentence describing the dish in the chef's voice.",
+    "cooking_time": "25 mins",
+    "key_ingredients": ["ingredient1", "ingredient2", "ingredient3"]
+  }}
+]
+
+Rules: vary proteins and cooking styles across the week (no repeats). Keep descriptions warm and encouraging. Return ONLY the raw JSON array, no markdown."""
+
+    try:
+        client = _create_client()
+        response = client.models.generate_content(
+            model=RECIPE_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.85,
+                response_mime_type="application/json",
+            ),
+        )
+        text = response.text.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1]
+            if text.endswith("```"):
+                text = text[:-3]
+            text = text.strip()
+        plan = json.loads(text)
+        return {"plan": plan}
+    except Exception as e:
+        print(f"Error generating meal plan: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="The planner's notepad is full! Give the kitchen a moment and try again."
+        )
 
 
 @app.get("/api/health")

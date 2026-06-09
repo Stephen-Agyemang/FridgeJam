@@ -56,6 +56,10 @@
                     <span class="toggle-icon">📦</span>
                     <span class="toggle-text">My Recipe Box (<span id="recipe-box-count">0</span>)</span>
                 </button>
+                <button type="button" id="meal-planner-btn" class="theme-toggle-btn" aria-label="Open Meal Planner">
+                    <span class="toggle-icon">📅</span>
+                    <span class="toggle-text">Meal Planner</span>
+                </button>
                 <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Night Kitchen Mode">
                     <span class="toggle-icon">🌙</span>
                     <span class="toggle-text">Twilight Kitchen</span>
@@ -85,6 +89,10 @@
                                     <button type="button" id="btn-scan-photo" class="btn-scan-photo" aria-label="Scan Fridge Photo">
                                         <span class="btn-scan-icon">📸</span>
                                         <span class="btn-scan-text">Scan Fridge</span>
+                                    </button>
+                                    <button type="button" id="btn-voice-input" class="btn-scan-photo btn-voice-input" aria-label="Speak ingredients">
+                                        <span class="btn-scan-icon">🎤</span>
+                                        <span class="btn-scan-text" id="voice-btn-text">Speak</span>
                                     </button>
                                     <input type="file" id="fridge-photo-input" accept="image/*" style="display: none;">
                                 </div>
@@ -314,6 +322,9 @@
                     <button type="button" class="btn-action-circle" id="recipe-heart-btn" aria-label="Favorite recipe">
                         <span class="heart-icon">🤍</span>
                     </button>
+                    <button type="button" class="btn-action-circle" id="recipe-shopping-btn" aria-label="View shopping list">
+                        <span>🛒</span>
+                    </button>
                     <button type="button" class="btn-action-circle" id="recipe-share-btn" aria-label="Copy and share recipe card">
                         <span>🔗</span>
                     </button>
@@ -516,6 +527,51 @@
             <div class="pdf-card-footer">
                 <p>Printed with love from FridgeJam. Keep cooking zero-waste!</p>
             </div>
+        </div>
+    </div>
+
+    <!-- Shopping List Modal -->
+    <div class="shopping-list-modal hidden" id="shopping-list-modal" role="dialog" aria-modal="true" aria-labelledby="shopping-list-title">
+        <div class="shopping-list-backdrop" id="shopping-list-backdrop"></div>
+        <div class="shopping-list-panel">
+            <div class="shopping-list-header">
+                <h3 id="shopping-list-title">🛒 Shopping List</h3>
+                <button class="shopping-list-close" id="shopping-list-close" aria-label="Close shopping list">✕</button>
+            </div>
+            <p class="shopping-list-subtitle" id="shopping-list-subtitle">Ingredients you'll need to pick up:</p>
+            <ul class="shopping-list-items" id="shopping-list-items"></ul>
+            <div class="shopping-list-footer">
+                <button class="shopping-list-copy-btn" id="shopping-list-copy-btn">📋 Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meal Planner Overlay -->
+    <div class="meal-planner-overlay hidden" id="meal-planner-overlay" role="dialog" aria-modal="true" aria-labelledby="meal-planner-title">
+        <div class="meal-planner-backdrop" id="meal-planner-backdrop"></div>
+        <div class="meal-planner-panel">
+            <div class="meal-planner-header">
+                <h2 id="meal-planner-title">📅 Weekly Meal Planner</h2>
+                <div class="meal-planner-header-actions">
+                    <button id="meal-planner-suggest-btn" class="mp-suggest-btn">✨ Suggest with AI</button>
+                    <button id="meal-planner-clear-btn" class="mp-clear-btn">🗑️ Clear Week</button>
+                    <button id="meal-planner-close" class="meal-planner-close" aria-label="Close meal planner">✕</button>
+                </div>
+            </div>
+            <p class="meal-planner-hint">Assign saved recipes to each day, or let AI plan your week!</p>
+            <div class="meal-planner-grid" id="meal-planner-grid"></div>
+        </div>
+    </div>
+
+    <!-- Meal Day Picker (shown when clicking + on a day slot) -->
+    <div class="meal-day-picker hidden" id="meal-day-picker" role="dialog" aria-modal="true">
+        <div class="meal-day-picker-backdrop" id="meal-day-picker-backdrop"></div>
+        <div class="meal-day-picker-panel">
+            <div class="meal-day-picker-header">
+                <h4 id="meal-day-picker-title">Add meal for Monday</h4>
+                <button class="meal-day-picker-close" id="meal-day-picker-close" aria-label="Close">✕</button>
+            </div>
+            <div class="meal-day-picker-list" id="meal-day-picker-list"></div>
         </div>
     </div>
 

@@ -195,7 +195,8 @@ let appState = {
     ingredients: [],
     selectedPersonality: 'grandma', // default selected
     currentRecipe: null,
-    favorites: [] // loaded dynamically from localStorage on boot
+    favorites: [],  // loaded dynamically from localStorage on boot
+    mealPlan: {}    // loaded dynamically from localStorage on boot
 };
 
 // --- View State Manager (Refined with Modal Overlay Support) ---
@@ -521,7 +522,8 @@ function startCookingAnimation(chefName) {
     const chefTitles = {
         budget: "Thrifty Chef Tony is counting the scraps...",
         grandma: "Grandma Marie is tying her apron...",
-        chef: "Chef Pierre is organizing his culinary station..."
+        chef: "Chef Pierre is organizing his culinary station...",
+        chloe: "Healthy Chef Chloe is lacing up her apron..."
     };
     if (DOM.loadingChefTitle) {
         DOM.loadingChefTitle.textContent = chefTitles[chefName] || chefTitles.grandma;
@@ -2276,10 +2278,355 @@ function updateThemeToggleUI(isDark) {
     }
 }
 
+// ─────────────────────────────────────────────
+// FEATURE: Voice Ingredient Input
+// ─────────────────────────────────────────────
+let voiceRecognition = null;
+let isListening = false;
+
+function initVoiceInput() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const btn = document.getElementById('btn-voice-input');
+
+    if (!SpeechRecognition) {
+        if (btn) btn.style.display = 'none';
+        return;
+    }
+
+    voiceRecognition = new SpeechRecognition();
+    voiceRecognition.continuous = false;
+    voiceRecognition.interimResults = false;
+    voiceRecognition.lang = 'en-US';
+
+    voiceRecognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        const currentText = DOM.ingredientsInput.value.trim();
+        const separator = (currentText === '' || currentText.endsWith(',')) ? ' ' : ', ';
+        DOM.ingredientsInput.value = currentText + separator + transcript;
+        updateInputTextareaAndSync();
+        showToast(`Added: "${transcript}" 🎤`);
+    };
+
+    voiceRecognition.onend = () => {
+        isListening = false;
+        updateVoiceBtnState(false);
+    };
+
+    voiceRecognition.onerror = (event) => {
+        isListening = false;
+        updateVoiceBtnState(false);
+        if (event.error !== 'no-speech') {
+            showToast('Microphone issue — please check browser permissions!');
+        }
+    };
+
+    if (btn) {
+        btn.addEventListener('click', () => {
+            if (isListening) {
+                voiceRecognition.stop();
+            } else {
+                try {
+                    voiceRecognition.start();
+                    isListening = true;
+                    updateVoiceBtnState(true);
+                    synth.playDialClick();
+                } catch (e) {
+                    showToast('Could not start microphone. Try again!');
+                }
+            }
+        });
+    }
+}
+
+function updateVoiceBtnState(listening) {
+    const btn = document.getElementById('btn-voice-input');
+    const text = document.getElementById('voice-btn-text');
+    if (!btn) return;
+    btn.classList.toggle('listening', listening);
+    if (text) text.textContent = listening ? 'Listening...' : 'Speak';
+}
+
+
+// ─────────────────────────────────────────────
+// FEATURE: Shopping List
+// ─────────────────────────────────────────────
+function openShoppingList() {
+    if (!appState.currentRecipe) return;
+
+    const missingIngs = appState.currentRecipe.ingredients.filter(ing => !ing.is_user_ingredient);
+    const modal    = document.getElementById('shopping-list-modal');
+    const itemsList = document.getElementById('shopping-list-items');
+    const subtitle = document.getElementById('shopping-list-subtitle');
+    if (!modal || !itemsList) return;
+
+    itemsList.innerHTML = '';
+
+    if (missingIngs.length === 0) {
+        if (subtitle) subtitle.textContent = 'You already have everything! ✅';
+        itemsList.innerHTML = '<li class="shopping-all-good">Nothing to shop for — your fridge is fully stocked!</li>';
+    } else {
+        if (subtitle) subtitle.textContent = `${missingIngs.length} item${missingIngs.length !== 1 ? 's' : ''} to pick up:`;
+        missingIngs.forEach(ing => {
+            const li = document.createElement('li');
+            li.className = 'shopping-item';
+            const label = ing.amount ? `${escapeHtml(ing.amount)} ${escapeHtml(ing.name)}` : escapeHtml(ing.name);
+            li.innerHTML = `
+                <label class="shopping-item-label">
+                    <input type="checkbox" class="shopping-item-check">
+                    <span class="shopping-item-name">${label}</span>
+                </label>
+            `;
+            itemsList.appendChild(li);
+        });
+    }
+
+    modal.classList.remove('hidden');
+    synth.playDrawerSlide();
+}
+
+function closeShoppingList() {
+    const modal = document.getElementById('shopping-list-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function copyShoppingList() {
+    if (!appState.currentRecipe) return;
+    const missingIngs = appState.currentRecipe.ingredients.filter(ing => !ing.is_user_ingredient);
+    if (missingIngs.length === 0) {
+        showToast('Nothing to copy — you have everything!');
+        return;
+    }
+    const lines = missingIngs.map(ing => `- ${ing.amount ? ing.amount + ' ' : ''}${ing.name}`).join('\n');
+    const text = `🛒 Shopping List for "${appState.currentRecipe.title}"\n\n${lines}\n\nFrom FridgeJam 🍳`;
+    navigator.clipboard.writeText(text)
+        .then(() => showToast('Shopping list copied to clipboard! 🛒'))
+        .catch(() => showToast('Copy failed — try again!'));
+}
+
+function initShoppingListEvents() {
+    const modal    = document.getElementById('shopping-list-modal');
+    const panel    = modal ? modal.querySelector('.shopping-list-panel') : null;
+    const closeBtn = document.getElementById('shopping-list-close');
+    const copyBtn  = document.getElementById('shopping-list-copy-btn');
+    const shopBtn  = document.getElementById('recipe-shopping-btn');
+
+    if (shopBtn)  shopBtn.addEventListener('click', openShoppingList);
+    if (closeBtn) closeBtn.addEventListener('click', closeShoppingList);
+    if (modal)    modal.addEventListener('click', (e) => {
+        if (panel && !panel.contains(e.target)) closeShoppingList();
+    });
+    if (copyBtn)  copyBtn.addEventListener('click', copyShoppingList);
+}
+
+
+// ─────────────────────────────────────────────
+// FEATURE: Meal Planner
+// ─────────────────────────────────────────────
+const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+function loadMealPlan() {
+    try {
+        const saved = localStorage.getItem('mealPlan');
+        appState.mealPlan = saved ? JSON.parse(saved) : {};
+    } catch (e) {
+        appState.mealPlan = {};
+    }
+}
+
+function saveMealPlan() {
+    localStorage.setItem('mealPlan', JSON.stringify(appState.mealPlan));
+}
+
+function openMealPlanner() {
+    const overlay = document.getElementById('meal-planner-overlay');
+    if (overlay) overlay.classList.remove('hidden');
+    renderMealPlannerGrid();
+    synth.playDrawerSlide();
+}
+
+function closeMealPlanner() {
+    const overlay = document.getElementById('meal-planner-overlay');
+    if (overlay) overlay.classList.add('hidden');
+    closeMealDayPicker();
+}
+
+function renderMealPlannerGrid() {
+    const grid = document.getElementById('meal-planner-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    DAYS_OF_WEEK.forEach(day => {
+        const meal = appState.mealPlan[day] || null;
+        const col  = document.createElement('div');
+        col.className = 'meal-planner-day-col';
+
+        if (meal) {
+            const title = escapeHtml(meal.meal_name || meal.title || 'Untitled');
+            const time  = meal.cooking_time ? `<span class="mp-meal-time">⏱️ ${escapeHtml(meal.cooking_time)}</span>` : '';
+            const desc  = meal.isAiStub && meal.description
+                ? `<p class="mp-meal-desc">${escapeHtml(meal.description)}</p>` : '';
+            const thumb = !meal.isAiStub && meal.saved_image_url
+                ? `<img class="mp-meal-thumb" src="${meal.saved_image_url}" alt="${title}" onerror="this.style.display='none'">`
+                : `<div class="mp-meal-emoji">${meal.isAiStub ? '✨' : '🍽️'}</div>`;
+
+            col.innerHTML = `
+                <div class="mp-day-label">${day.slice(0, 3)}</div>
+                <div class="mp-meal-card">
+                    ${thumb}
+                    <div class="mp-meal-info">
+                        <p class="mp-meal-title">${title}</p>
+                        ${desc}${time}
+                    </div>
+                    <button class="mp-remove-btn" data-day="${day}" aria-label="Remove ${day} meal">✕</button>
+                </div>
+            `;
+        } else {
+            col.innerHTML = `
+                <div class="mp-day-label">${day.slice(0, 3)}</div>
+                <div class="mp-empty-slot">
+                    <button class="mp-add-btn" data-day="${day}" aria-label="Add meal for ${day}">
+                        <span class="mp-add-icon">+</span>
+                        <span class="mp-add-text">Add meal</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        grid.appendChild(col);
+    });
+
+    grid.querySelectorAll('.mp-remove-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const day = btn.getAttribute('data-day');
+            delete appState.mealPlan[day];
+            saveMealPlan();
+            renderMealPlannerGrid();
+            synth.playDialClick();
+        });
+    });
+
+    grid.querySelectorAll('.mp-add-btn').forEach(btn => {
+        btn.addEventListener('click', () => openMealDayPicker(btn.getAttribute('data-day')));
+    });
+}
+
+function openMealDayPicker(day) {
+    const picker     = document.getElementById('meal-day-picker');
+    const pickerTitle = document.getElementById('meal-day-picker-title');
+    const pickerList = document.getElementById('meal-day-picker-list');
+    if (!picker || !pickerList) return;
+
+    if (pickerTitle) pickerTitle.textContent = `Add meal for ${day}`;
+    picker.setAttribute('data-day', day);
+    pickerList.innerHTML = '';
+
+    if (appState.favorites.length === 0) {
+        pickerList.innerHTML = '<p class="mp-picker-empty">Save recipes to your Recipe Box first! ❤️</p>';
+    } else {
+        appState.favorites.forEach(recipe => {
+            const btn = document.createElement('button');
+            btn.className = 'mp-picker-item';
+            const thumb = recipe.saved_image_url
+                ? `<img class="mp-picker-thumb" src="${recipe.saved_image_url}" alt="" onerror="this.style.display='none'">`
+                : '<span class="mp-picker-emoji">🍽️</span>';
+            btn.innerHTML = `${thumb}<span class="mp-picker-name">${escapeHtml(recipe.title)}</span>`;
+            btn.addEventListener('click', () => {
+                appState.mealPlan[day] = { ...recipe, meal_name: recipe.title };
+                saveMealPlan();
+                closeMealDayPicker();
+                renderMealPlannerGrid();
+                synth.playDialClick();
+            });
+            pickerList.appendChild(btn);
+        });
+    }
+
+    picker.classList.remove('hidden');
+}
+
+function closeMealDayPicker() {
+    const picker = document.getElementById('meal-day-picker');
+    if (picker) picker.classList.add('hidden');
+}
+
+async function suggestMealPlanWithAI() {
+    const btn = document.getElementById('meal-planner-suggest-btn');
+    if (btn) { btn.textContent = '⏳ Thinking...'; btn.disabled = true; }
+
+    try {
+        const res = await fetch('/api/meal-plan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ingredients: appState.ingredients.join(', '),
+                personality: appState.selectedPersonality
+            })
+        });
+
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+
+        (data.plan || []).forEach(item => {
+            if (item.day && item.meal_name) {
+                appState.mealPlan[item.day] = {
+                    meal_name:       item.meal_name,
+                    description:     item.description || '',
+                    cooking_time:    item.cooking_time || '',
+                    key_ingredients: item.key_ingredients || [],
+                    isAiStub:        true
+                };
+            }
+        });
+
+        saveMealPlan();
+        renderMealPlannerGrid();
+        showToast('Your AI meal plan is ready! ✨');
+    } catch (err) {
+        console.error('Meal plan suggestion failed:', err);
+        showToast("Couldn't generate a plan right now. Try again!");
+    } finally {
+        if (btn) { btn.textContent = '✨ Suggest with AI'; btn.disabled = false; }
+    }
+}
+
+function initMealPlannerEvents() {
+    const openBtn    = document.getElementById('meal-planner-btn');
+    const closeBtn   = document.getElementById('meal-planner-close');
+    const overlay    = document.getElementById('meal-planner-overlay');
+    const panel      = overlay ? overlay.querySelector('.meal-planner-panel') : null;
+    const suggestBtn = document.getElementById('meal-planner-suggest-btn');
+    const clearBtn   = document.getElementById('meal-planner-clear-btn');
+    const picker        = document.getElementById('meal-day-picker');
+    const pickerPanel   = picker ? picker.querySelector('.meal-day-picker-panel') : null;
+    const pickerClose   = document.getElementById('meal-day-picker-close');
+
+    if (openBtn)   openBtn.addEventListener('click', openMealPlanner);
+    if (closeBtn)  closeBtn.addEventListener('click', closeMealPlanner);
+    if (overlay)   overlay.addEventListener('click', (e) => {
+        if (panel && !panel.contains(e.target)) closeMealPlanner();
+    });
+    if (suggestBtn) suggestBtn.addEventListener('click', suggestMealPlanWithAI);
+    if (clearBtn)  clearBtn.addEventListener('click', () => {
+        appState.mealPlan = {};
+        saveMealPlan();
+        renderMealPlannerGrid();
+        synth.playDialClick();
+    });
+    if (pickerClose) pickerClose.addEventListener('click', closeMealDayPicker);
+    if (picker)      picker.addEventListener('click', (e) => {
+        if (pickerPanel && !pickerPanel.contains(e.target)) closeMealDayPicker();
+    });
+}
+
+
 // Run on boot
 document.addEventListener('DOMContentLoaded', () => {
     loadFavorites();
+    loadMealPlan();
     initEvents();
+    initVoiceInput();
+    initShoppingListEvents();
+    initMealPlannerEvents();
     renderIngredientsTags();
     initTheme();
     showState('input');
