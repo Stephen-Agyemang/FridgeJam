@@ -2321,17 +2321,18 @@ function initVoiceInput() {
     };
 
     if (btn) {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             if (isListening) {
                 voiceRecognition.stop();
             } else {
                 try {
+                    await navigator.mediaDevices.getUserMedia({ audio: true });
                     voiceRecognition.start();
                     isListening = true;
                     updateVoiceBtnState(true);
                     synth.playDialClick();
                 } catch (e) {
-                    showToast('Could not start microphone. Try again!');
+                    showToast('Microphone access denied — please allow it in your browser settings.');
                 }
             }
         });
