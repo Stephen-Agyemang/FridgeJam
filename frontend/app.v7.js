@@ -1093,17 +1093,28 @@ async function startCooking() {
     
     try {
         // Step 1: Generate Recipe JSON from Gemini
-        const recipeResponse = await fetch('/api/recipe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                ingredients: ingredientsPayload,
-                personality: appState.selectedPersonality
-            })
+        // Retry once on 5xx / network failure to survive Cloud Run cold-start timeouts.
+        const recipePayload = JSON.stringify({
+            ingredients: ingredientsPayload,
+            personality: appState.selectedPersonality
         });
-        
-        if (!recipeResponse.ok) {
-            const errData = await recipeResponse.json();
+        let recipeResponse = null;
+        for (let attempt = 0; attempt <= 1; attempt++) {
+            try {
+                recipeResponse = await fetch('/api/recipe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: recipePayload
+                });
+                if (recipeResponse.ok || recipeResponse.status < 500) break;
+            } catch (_networkErr) {
+                if (attempt === 1) throw new Error("The kitchen connection dropped! Check your internet and try again.");
+            }
+            await new Promise(r => setTimeout(r, 2000));
+        }
+
+        if (!recipeResponse || !recipeResponse.ok) {
+            const errData = recipeResponse ? await recipeResponse.json().catch(() => ({})) : {};
             throw new Error(errData.detail || "Stove failure during recipe creation.");
         }
         
@@ -2621,7 +2632,14 @@ function initMealPlannerEvents() {
 
 
 // Run on boot
+// Silently warm up the Cloud Run backend on page load so the first recipe
+// request doesn't hit a cold-start timeout (Cloud Run scales to zero when idle).
+function warmUpBackend() {
+    fetch('/api/health').catch(() => {});
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    warmUpBackend();
     loadFavorites();
     loadMealPlan();
     initEvents();
