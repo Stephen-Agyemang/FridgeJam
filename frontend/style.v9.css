@@ -4087,45 +4087,52 @@ body.dark-theme .scan-overlay-content {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* allows confirm banner to anchor to the bottom of this panel */
+  isolation: isolate;
 }
 
 .meal-planner-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 18px 24px 14px;
+  gap: 12px;
+  padding: 16px 20px 14px;
   border-bottom: 2.5px solid var(--glass-border);
+  flex-wrap: nowrap;
 }
 
 .meal-planner-header h2 {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .meal-planner-header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .mp-suggest-btn {
-  padding: 8px 16px;
+  padding: 9px 18px;
   background: var(--accent-lavender);
   border: 2.5px solid var(--glass-border);
   box-shadow: 3px 3px 0 var(--glass-border);
   border-radius: var(--radius-md);
   font-family: var(--font-body);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.85rem;
   color: var(--text-primary);
   cursor: pointer;
   transition: var(--transition-spring);
+  white-space: nowrap;
 }
 .mp-suggest-btn:hover:not(:disabled) {
   transform: translate(-2px, -2px);
@@ -4134,31 +4141,52 @@ body.dark-theme .scan-overlay-content {
 .mp-suggest-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .mp-clear-btn {
-  padding: 8px 14px;
+  padding: 9px 16px;
   background: none;
   border: 2px solid var(--glass-border);
   border-radius: var(--radius-md);
   font-family: var(--font-body);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.85rem;
   color: var(--text-secondary);
   cursor: pointer;
   transition: var(--transition-gentle);
+  white-space: nowrap;
 }
 .mp-clear-btn:hover { background: var(--accent-rose); color: #fff; border-color: var(--accent-rose); }
 
 .meal-planner-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   background: none;
-  border: none;
-  font-size: 1.2rem;
+  border: 2px solid var(--glass-border);
+  border-radius: 50%;
+  font-size: 1rem;
   cursor: pointer;
   color: var(--text-secondary);
-  padding: 4px 8px;
-  border-radius: 8px;
-  transition: background 0.2s;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
   line-height: 1;
 }
-.meal-planner-close:hover { background: var(--accent-rose); color: #fff; }
+.meal-planner-close:hover { background: var(--accent-rose); color: #fff; border-color: var(--accent-rose); }
+
+/* Mobile: allow header to wrap so nothing gets squashed */
+@media (max-width: 580px) {
+  .meal-planner-header {
+    flex-wrap: wrap;
+    padding: 14px 16px 12px;
+  }
+  .meal-planner-header h2 {
+    flex-basis: 100%;
+    white-space: normal;
+  }
+  .meal-planner-header-actions {
+    flex: 1;
+  }
+}
 
 .meal-planner-hint {
   font-family: var(--font-body);
@@ -4222,9 +4250,9 @@ body.dark-theme .scan-overlay-content {
 }
 
 .mp-meal-emoji {
-  font-size: 2rem;
+  font-size: 1.8rem;
   text-align: center;
-  padding: 12px 0 4px;
+  padding: 10px 0 4px;
 }
 
 .mp-meal-info {
@@ -4426,7 +4454,346 @@ body.dark-theme .scan-overlay-content {
 .mp-picker-emoji { font-size: 1.4rem; flex-shrink: 0; }
 .mp-picker-name { font-weight: 600; }
 
+/* Cook-this button — integrated footer strip on AI stub cards.
+   The card's overflow:hidden + border-radius clips the bottom corners cleanly. */
+.mp-cook-btn {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--accent-lavender);
+  border: none;
+  border-top: 2px solid var(--glass-border);
+  border-radius: 0;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  transition: background 0.18s ease, letter-spacing 0.15s ease;
+  margin: 0;
+  flex-shrink: 0;
+}
+.mp-cook-btn:hover {
+  background: #b5a8dc;
+  letter-spacing: 0.04em;
+}
+body.dark-theme .mp-cook-btn { background: #4a4275; color: #e8e4f8; }
+body.dark-theme .mp-cook-btn:hover { background: #5a528a; }
+
+/* Cook-from-plan confirmation banner (anchored to the bottom of the planner panel) */
+.mp-cook-confirm {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 14px 24px 16px;
+  background: var(--bg-warm);
+  border-top: 2.5px solid var(--glass-border);
+  /* Left accent bar — matches the FridgeJam pillowy style */
+  box-shadow: 0 -6px 24px rgba(37, 40, 61, 0.14),
+              inset 4px 0 0 var(--accent-lavender);
+  z-index: 10;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  animation: slideUpBanner 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.mp-cook-confirm.hidden { display: none; }
+
+@keyframes slideUpBanner {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Two-row layout: top row = label + title, bottom row = actions (right-aligned) */
+.mp-cook-confirm-box {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 20px;
+  row-gap: 10px;
+  align-items: center;
+}
+
+.mp-cook-confirm-label {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent-lavender);
+  /* darken the lavender slightly so it reads on cream */
+  color: #7a6eb8;
+  margin: 0 0 2px;
+}
+
+.mp-cook-confirm-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  /* Truncate very long meal names to one line */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Stack label + name into the left column */
+.mp-cook-confirm-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+.mp-cook-confirm-desc {
+  display: none; /* reserved for future use */
+}
+
+.mp-cook-confirm-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  align-items: center;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.mp-cook-confirm-yes {
+  padding: 10px 22px;
+  background: var(--accent-copper);
+  border: 2.5px solid var(--glass-border);
+  box-shadow: 3px 3px 0 var(--glass-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-spring);
+}
+.mp-cook-confirm-yes:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--glass-border);
+}
+
+.mp-cook-confirm-no {
+  padding: 10px 18px;
+  background: none;
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-gentle);
+}
+.mp-cook-confirm-no:hover { background: rgba(37, 40, 61, 0.07); }
+
+/* Mobile: stack the confirm banner vertically */
+@media (max-width: 580px) {
+  .mp-cook-confirm-box {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+  .mp-cook-confirm-text {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .mp-cook-confirm-actions {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-end;
+  }
+}
+
+/* ── AI Preference Sheet ──────────────────────────────────────────────────── */
+.mp-prefs-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(250, 247, 240, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
+  animation: mpPrefsIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.mp-prefs-overlay.hidden { display: none; }
+
+@keyframes mpPrefsIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.mp-prefs-panel {
+  background: var(--glass-bg);
+  border: 2.5px solid var(--glass-border);
+  box-shadow: 6px 6px 0 var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 28px 28px 22px;
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: calc(90vh - 80px);
+  overflow-y: auto;
+}
+
+.mp-prefs-header { display: flex; flex-direction: column; gap: 4px; }
+
+.mp-prefs-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.mp-prefs-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.mp-prefs-section { display: flex; flex-direction: column; gap: 0; }
+
+.mp-prefs-q-label {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin: 0 0 10px;
+}
+
+.mp-prefs-optional {
+  font-weight: 400;
+  opacity: 0.65;
+}
+
+.mp-prefs-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mp-pref-chip {
+  padding: 8px 16px;
+  border-radius: 24px;
+  border: 2px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, transform 0.12s, box-shadow 0.12s;
+}
+.mp-pref-chip:hover {
+  background: rgba(199, 189, 232, 0.22);
+  transform: translateY(-1px);
+}
+.mp-pref-chip.mp-pref-selected {
+  background: var(--glass-border);
+  color: var(--bg-warm);
+  box-shadow: 2px 2px 0 rgba(37, 40, 61, 0.35);
+  transform: translateY(-1px);
+}
+
+.mp-prefs-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 16px;
+  border-top: 1.5px solid rgba(37, 40, 61, 0.1);
+  flex-wrap: wrap;
+}
+
+.mp-prefs-learn-note {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0;
+  flex: 1;
+  min-width: 160px;
+}
+
+.mp-prefs-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.mp-prefs-cancel-btn {
+  padding: 10px 18px;
+  background: none;
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-gentle);
+}
+.mp-prefs-cancel-btn:hover { background: rgba(37, 40, 61, 0.06); }
+
+.mp-prefs-go-btn {
+  padding: 10px 22px;
+  background: var(--accent-lavender);
+  border: 2.5px solid var(--glass-border);
+  box-shadow: 3px 3px 0 var(--glass-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-spring);
+}
+.mp-prefs-go-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--glass-border);
+}
+.mp-prefs-go-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: 3px 3px 0 var(--glass-border); }
+
+@media (max-width: 580px) {
+  .mp-prefs-panel { padding: 20px 18px 18px; }
+  .mp-prefs-footer { flex-direction: column; align-items: flex-start; }
+  .mp-prefs-actions { width: 100%; }
+  .mp-prefs-go-btn { flex: 1; text-align: center; }
+}
+
 /* Dark theme adjustments */
 body.dark-theme .mp-remove-btn { background: rgba(250, 249, 246, 0.15); }
 body.dark-theme .mp-empty-slot { border-color: rgba(255, 255, 255, 0.2); }
 body.dark-theme .shopping-item { border-color: rgba(255, 255, 255, 0.1); }
+body.dark-theme .mp-cook-confirm {
+  background: var(--bg-warm);
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.3), inset 4px 0 0 #5a50a0;
+}
+body.dark-theme .mp-cook-confirm-label { color: #9d92d8; }
+body.dark-theme .mp-cook-confirm-no:hover { background: rgba(255, 255, 255, 0.06); }
+body.dark-theme .mp-prefs-overlay { background: rgba(26, 30, 46, 0.94); }
+body.dark-theme .mp-prefs-panel { background: var(--bg-warm); border-color: rgba(160, 176, 204, 0.5); box-shadow: 6px 6px 0 rgba(160, 176, 204, 0.3); }
+body.dark-theme .mp-pref-chip { border-color: rgba(160, 176, 204, 0.5); color: #d0dbf0; }
+body.dark-theme .mp-pref-chip:hover { background: rgba(160, 176, 204, 0.12); }
+body.dark-theme .mp-pref-chip.mp-pref-selected { background: #a0b0cc; color: #1a1e2e; box-shadow: 2px 2px 0 rgba(160, 176, 204, 0.4); }
+body.dark-theme .mp-prefs-footer { border-top-color: rgba(255, 255, 255, 0.1); }
+body.dark-theme .mp-prefs-cancel-btn:hover { background: rgba(255, 255, 255, 0.06); }

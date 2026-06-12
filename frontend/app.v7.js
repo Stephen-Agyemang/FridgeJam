@@ -206,8 +206,12 @@ let appState = {
     favorites: [],  // loaded dynamically from localStorage on boot
     mealPlan: {},   // loaded dynamically from localStorage on boot
     dietaryRestrictions: [],
-    expiringIngredients: new Set() // Expiry-First Mode: ingredients marked as expiring soon
+    expiringIngredients: new Set(), // Expiry-First Mode: ingredients marked as expiring soon
+    planRecipeHint: null  // Set when user clicks "Cook this" on a meal planner AI stub
 };
+
+// Preference state for the meal plan AI sheet (reset each time the sheet opens)
+const planPrefs = { mood: null, cuisines: new Set() };
 
 // --- View State Manager (Refined with Modal Overlay Support) ---
 function showState(stateName) {
@@ -1100,7 +1104,10 @@ async function startCooking() {
         showToast("Add some ingredients first before lighting the stove!");
         return;
     }
-    
+
+    // Log this session's ingredients so buildTasteProfile() can learn from it
+    trackIngredientUsage(appState.ingredients);
+
     // 1. Synthesize burner click sound
     synth.playDialClick();
 
@@ -1144,8 +1151,10 @@ async function startCooking() {
             ingredients: ingredientsPayload,
             personality: appState.selectedPersonality,
             dietary_restrictions: appState.dietaryRestrictions,
-            expiring_soon: [...appState.expiringIngredients]
+            expiring_soon: [...appState.expiringIngredients],
+            recipe_hint: appState.planRecipeHint || undefined
         });
+        appState.planRecipeHint = null;
         let recipeResponse = null;
         for (let attempt = 0; attempt <= 1; attempt++) {
             try {
@@ -2827,6 +2836,119 @@ function initShoppingListEvents() {
 // ─────────────────────────────────────────────
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+// --- Taste Learning ---
+
+function trackIngredientUsage(ingredients) {
+    if (!ingredients || ingredients.length === 0) return;
+    try {
+        const raw = localStorage.getItem('fridgejam_ingredient_log');
+        const log = raw ? JSON.parse(raw) : [];
+        log.unshift({ ingredients: [...ingredients], timestamp: Date.now() });
+        localStorage.setItem('fridgejam_ingredient_log', JSON.stringify(log.slice(0, 30)));
+    } catch (_) { /* ignore quota errors */ }
+}
+
+function buildTasteProfile() {
+    const favorites = appState.favorites;
+    const ingredientCounts = {};
+    const culturalCounts = {};
+
+    // Mine saved recipes — higher weight since these are dishes the user loved
+    favorites.forEach(recipe => {
+        (recipe.ingredients || []).forEach(ing => {
+            const key = (ing.name || '').toLowerCase().trim();
+            if (key.length > 2) {
+                ingredientCounts[key] = (ingredientCounts[key] || 0) + 2;
+            }
+        });
+        if (recipe.cultural_origin) {
+            const origin = recipe.cultural_origin;
+            culturalCounts[origin] = (culturalCounts[origin] || 0) + 1;
+        }
+    });
+
+    // Mine ingredient cooking log — lower weight (not saved, just cooked)
+    try {
+        const raw = localStorage.getItem('fridgejam_ingredient_log');
+        if (raw) {
+            JSON.parse(raw).forEach(entry => {
+                (entry.ingredients || []).forEach(ing => {
+                    const key = ing.toLowerCase().trim();
+                    if (key.length > 2) {
+                        ingredientCounts[key] = (ingredientCounts[key] || 0) + 1;
+                    }
+                });
+            });
+        }
+    } catch (_) { /* ignore */ }
+
+    const topIngredients = Object.entries(ingredientCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([ing]) => ing);
+
+    const culturalAffinities = Object.entries(culturalCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([origin]) => origin);
+
+    // Most recent saved dishes (newest first, max 8)
+    const savedDishes = favorites
+        .slice()
+        .reverse()
+        .slice(0, 8)
+        .map(r => r.title)
+        .filter(Boolean);
+
+    return {
+        top_ingredients:     topIngredients,
+        cultural_affinities: culturalAffinities,
+        saved_dishes:        savedDishes,
+        cook_count:          favorites.length
+    };
+}
+
+// --- Meal Plan Preference Sheet ---
+
+function openPlanPrefs() {
+    // Reset to blank slate each open
+    planPrefs.mood = null;
+    planPrefs.cuisines.clear();
+    document.querySelectorAll('#mp-mood-chips .mp-pref-chip, #mp-cuisine-chips .mp-pref-chip')
+        .forEach(c => c.classList.remove('mp-pref-selected'));
+
+    // Build the learn note based on available data
+    const learnNote = document.getElementById('mp-prefs-learn-note');
+    if (learnNote) {
+        const n = appState.favorites.length;
+        let sessions = 0;
+        try {
+            const raw = localStorage.getItem('fridgejam_ingredient_log');
+            sessions = raw ? JSON.parse(raw).length : 0;
+        } catch (_) { /* ignore */ }
+
+        if (n === 0 && sessions === 0) {
+            learnNote.textContent = 'Save a recipe to your Recipe Box and we\'ll start learning your taste 💡';
+        } else {
+            const parts = [];
+            if (n > 0) parts.push(`${n} saved recipe${n !== 1 ? 's' : ''}`);
+            if (sessions > 0) parts.push(`${sessions} cooking session${sessions !== 1 ? 's' : ''}`);
+            learnNote.textContent = `Learning from ${parts.join(' & ')} ❤️`;
+        }
+    }
+
+    const overlay = document.getElementById('mp-prefs-overlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+        synth.playDrawerSlide();
+    }
+}
+
+function closePlanPrefs() {
+    const overlay = document.getElementById('mp-prefs-overlay');
+    if (overlay) overlay.classList.add('hidden');
+}
+
 function loadMealPlan() {
     try {
         const saved = localStorage.getItem('mealPlan');
@@ -2871,6 +2993,8 @@ function renderMealPlannerGrid() {
             const thumb = !meal.isAiStub && meal.saved_image_url
                 ? `<img class="mp-meal-thumb" src="${meal.saved_image_url}" alt="${title}" onerror="this.style.display='none'">`
                 : `<div class="mp-meal-emoji">${meal.isAiStub ? '✨' : '🍽️'}</div>`;
+            const cookBtn = meal.isAiStub
+                ? `<button class="mp-cook-btn" data-day="${day}">Cook this →</button>` : '';
 
             col.innerHTML = `
                 <div class="mp-day-label">${day.slice(0, 3)}</div>
@@ -2880,6 +3004,7 @@ function renderMealPlannerGrid() {
                         <p class="mp-meal-title">${title}</p>
                         ${desc}${time}
                     </div>
+                    ${cookBtn}
                     <button class="mp-remove-btn" data-day="${day}" aria-label="Remove ${day} meal">✕</button>
                 </div>
             `;
@@ -2910,6 +3035,14 @@ function renderMealPlannerGrid() {
 
     grid.querySelectorAll('.mp-add-btn').forEach(btn => {
         btn.addEventListener('click', () => openMealDayPicker(btn.getAttribute('data-day')));
+    });
+
+    grid.querySelectorAll('.mp-cook-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const day = btn.getAttribute('data-day');
+            const meal = appState.mealPlan[day];
+            if (meal) showCookFromPlanConfirm(meal);
+        });
     });
 }
 
@@ -2953,16 +3086,22 @@ function closeMealDayPicker() {
 }
 
 async function suggestMealPlanWithAI() {
+    closePlanPrefs();
     const btn = document.getElementById('meal-planner-suggest-btn');
-    if (btn) { btn.textContent = '⏳ Thinking...'; btn.disabled = true; }
+    if (btn) { btn.textContent = '⏳ Planning...'; btn.disabled = true; }
+
+    const tasteProfile = buildTasteProfile();
 
     try {
         const res = await fetch('/api/meal-plan', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                ingredients: appState.ingredients.join(', '),
-                personality: appState.selectedPersonality
+                ingredients:     appState.ingredients.join(', '),
+                personality:     appState.selectedPersonality,
+                mood:            planPrefs.mood,
+                cuisine_explore: [...planPrefs.cuisines],
+                taste_profile:   tasteProfile
             })
         });
 
@@ -2992,6 +3131,27 @@ async function suggestMealPlanWithAI() {
     }
 }
 
+function showCookFromPlanConfirm(meal) {
+    const banner = document.getElementById('mp-cook-confirm');
+    const nameEl = document.getElementById('mp-cook-confirm-name');
+    if (!banner || !nameEl) return;
+
+    nameEl.textContent = meal.meal_name || meal.title || 'This dish';
+    banner.classList.remove('hidden');
+    synth.playDialClick();
+
+    // Store pending meal for when user confirms
+    banner._pendingMeal = meal;
+}
+
+function hideCookFromPlanConfirm() {
+    const banner = document.getElementById('mp-cook-confirm');
+    if (banner) {
+        banner.classList.add('hidden');
+        banner._pendingMeal = null;
+    }
+}
+
 function initMealPlannerEvents() {
     const openBtn    = document.getElementById('meal-planner-btn');
     const closeBtn   = document.getElementById('meal-planner-close');
@@ -3008,7 +3168,41 @@ function initMealPlannerEvents() {
     if (overlay)   overlay.addEventListener('click', (e) => {
         if (panel && !panel.contains(e.target)) closeMealPlanner();
     });
-    if (suggestBtn) suggestBtn.addEventListener('click', suggestMealPlanWithAI);
+    // "Suggest with AI" opens the preference sheet first
+    if (suggestBtn) suggestBtn.addEventListener('click', openPlanPrefs);
+
+    // Preference sheet: mood chips (single-select)
+    document.querySelectorAll('#mp-mood-chips .mp-pref-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const mood = chip.getAttribute('data-mood');
+            planPrefs.mood = planPrefs.mood === mood ? null : mood;
+            document.querySelectorAll('#mp-mood-chips .mp-pref-chip')
+                .forEach(c => c.classList.toggle('mp-pref-selected', c.getAttribute('data-mood') === planPrefs.mood));
+            synth.playDialClick();
+        });
+    });
+
+    // Preference sheet: cuisine chips (multi-select)
+    document.querySelectorAll('#mp-cuisine-chips .mp-pref-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const cuisine = chip.getAttribute('data-cuisine');
+            if (planPrefs.cuisines.has(cuisine)) {
+                planPrefs.cuisines.delete(cuisine);
+                chip.classList.remove('mp-pref-selected');
+            } else {
+                planPrefs.cuisines.add(cuisine);
+                chip.classList.add('mp-pref-selected');
+            }
+            synth.playDialClick();
+        });
+    });
+
+    // Preference sheet: cancel + generate
+    const prefsCancel   = document.getElementById('mp-prefs-cancel');
+    const prefsGenerate = document.getElementById('mp-prefs-go');
+    if (prefsCancel)   prefsCancel.addEventListener('click', closePlanPrefs);
+    if (prefsGenerate) prefsGenerate.addEventListener('click', suggestMealPlanWithAI);
+
     if (clearBtn)  clearBtn.addEventListener('click', () => {
         appState.mealPlan = {};
         saveMealPlan();
@@ -3018,6 +3212,32 @@ function initMealPlannerEvents() {
     if (pickerClose) pickerClose.addEventListener('click', closeMealDayPicker);
     if (picker)      picker.addEventListener('click', (e) => {
         if (pickerPanel && !pickerPanel.contains(e.target)) closeMealDayPicker();
+    });
+
+    const confirmYes = document.getElementById('mp-cook-confirm-yes');
+    const confirmNo  = document.getElementById('mp-cook-confirm-no');
+
+    if (confirmNo) confirmNo.addEventListener('click', hideCookFromPlanConfirm);
+
+    if (confirmYes) confirmYes.addEventListener('click', () => {
+        const banner = document.getElementById('mp-cook-confirm');
+        const meal = banner ? banner._pendingMeal : null;
+        if (!meal) { hideCookFromPlanConfirm(); return; }
+
+        // Pre-fill ingredients from key_ingredients, falling back to an empty list
+        const keyIngs = (meal.key_ingredients || []).filter(Boolean);
+        if (keyIngs.length > 0) {
+            appState.ingredients = keyIngs;
+            DOM.ingredientsInput.value = keyIngs.join(', ');
+            renderIngredientsTags();
+        }
+
+        // Store the meal name so the backend can target this exact dish
+        appState.planRecipeHint = meal.meal_name || meal.title || null;
+
+        hideCookFromPlanConfirm();
+        closeMealPlanner();
+        startCooking();
     });
 }
 

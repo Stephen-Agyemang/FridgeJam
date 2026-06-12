@@ -642,11 +642,67 @@
                 <div class="meal-planner-header-actions">
                     <button id="meal-planner-suggest-btn" class="mp-suggest-btn">✨ Suggest with AI</button>
                     <button id="meal-planner-clear-btn" class="mp-clear-btn">🗑️ Clear Week</button>
-                    <button id="meal-planner-close" class="meal-planner-close" aria-label="Close meal planner">✕</button>
                 </div>
+                <button id="meal-planner-close" class="meal-planner-close" aria-label="Close meal planner">✕</button>
             </div>
             <p class="meal-planner-hint">Assign saved recipes to each day, or let AI plan your week!</p>
             <div class="meal-planner-grid" id="meal-planner-grid"></div>
+
+            <!-- AI Preference Sheet — shown when user clicks "Suggest with AI" -->
+            <div class="mp-prefs-overlay hidden" id="mp-prefs-overlay" role="dialog" aria-modal="true" aria-label="Personalize your meal plan">
+                <div class="mp-prefs-panel">
+                    <div class="mp-prefs-header">
+                        <h3 class="mp-prefs-title">Plan My Week</h3>
+                        <p class="mp-prefs-subtitle">Tell us what you're feeling — the AI does the rest</p>
+                    </div>
+
+                    <div class="mp-prefs-section">
+                        <p class="mp-prefs-q-label">What vibe are you going for?</p>
+                        <div class="mp-prefs-chips" id="mp-mood-chips" role="group" aria-label="Week mood">
+                            <button class="mp-pref-chip" data-mood="light">🌿 Light &amp; Fresh</button>
+                            <button class="mp-pref-chip" data-mood="bold">🔥 Bold &amp; Hearty</button>
+                            <button class="mp-pref-chip" data-mood="quick">⚡ Quick &amp; Easy</button>
+                            <button class="mp-pref-chip" data-mood="diverse">🌍 Explore the World</button>
+                        </div>
+                    </div>
+
+                    <div class="mp-prefs-section">
+                        <p class="mp-prefs-q-label">Any cuisines to discover? <span class="mp-prefs-optional">Pick as many as you like</span></p>
+                        <div class="mp-prefs-chips" id="mp-cuisine-chips" role="group" aria-label="Cuisine preferences">
+                            <button class="mp-pref-chip" data-cuisine="West African">🇬🇭 West African</button>
+                            <button class="mp-pref-chip" data-cuisine="East African">🌍 East African</button>
+                            <button class="mp-pref-chip" data-cuisine="Asian">🥢 Asian</button>
+                            <button class="mp-pref-chip" data-cuisine="South Asian">🍛 South Asian</button>
+                            <button class="mp-pref-chip" data-cuisine="Mediterranean">🫒 Mediterranean</button>
+                            <button class="mp-pref-chip" data-cuisine="Latin American">🌮 Latin American</button>
+                            <button class="mp-pref-chip" data-cuisine="Middle Eastern">🧆 Middle Eastern</button>
+                            <button class="mp-pref-chip" data-cuisine="Caribbean">🌴 Caribbean</button>
+                        </div>
+                    </div>
+
+                    <div class="mp-prefs-footer">
+                        <p class="mp-prefs-learn-note" id="mp-prefs-learn-note"></p>
+                        <div class="mp-prefs-actions">
+                            <button class="mp-prefs-cancel-btn" id="mp-prefs-cancel">Cancel</button>
+                            <button class="mp-prefs-go-btn" id="mp-prefs-go">Generate My Week ✨</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cook-from-plan confirmation banner -->
+            <div class="mp-cook-confirm hidden" id="mp-cook-confirm" role="dialog" aria-modal="true">
+                <div class="mp-cook-confirm-box">
+                    <div class="mp-cook-confirm-text">
+                        <p class="mp-cook-confirm-label">Ready to cook this?</p>
+                        <p class="mp-cook-confirm-name" id="mp-cook-confirm-name"></p>
+                    </div>
+                    <div class="mp-cook-confirm-actions">
+                        <button class="mp-cook-confirm-no" id="mp-cook-confirm-no">Not now</button>
+                        <button class="mp-cook-confirm-yes" id="mp-cook-confirm-yes">Let's cook! 🔥</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

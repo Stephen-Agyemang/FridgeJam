@@ -48,6 +48,8 @@ app.add_middleware(
 
 # Primary model for text/recipe generation
 RECIPE_MODEL = "gemini-2.5-flash"
+# Faster model used for lower-stakes structured tasks (meal plan, jokes)
+PLAN_MODEL = "gemini-2.0-flash"
 # Primary model for image generation
 IMAGE_MODEL = "imagen-4.0-generate-001"
 
@@ -71,6 +73,7 @@ class RecipeRequest(BaseModel):
     personality: str  # "budget", "grandma", "chef", or "chloe"
     dietary_restrictions: Optional[list[str]] = []
     expiring_soon: Optional[list[str]] = []
+    recipe_hint: Optional[str] = None  # Specific dish name from meal planner "Cook this" flow
 
 
 class ImageRequest(BaseModel):
@@ -85,6 +88,9 @@ class JokeEvaluationRequest(BaseModel):
 class MealPlanRequest(BaseModel):
     ingredients: Optional[str] = ""
     personality: str = "grandma"
+    mood: Optional[str] = None                  # "light" | "bold" | "quick" | "diverse"
+    cuisine_explore: Optional[list[str]] = []   # e.g. ["West African", "Asian"]
+    taste_profile: Optional[dict] = None        # mined from user's saved recipes + cook history
 
 
 # --- Routes ---
@@ -175,12 +181,22 @@ async def generate_recipe(request: Request, body: RecipeRequest):
             f"not as optional garnishes. This is the user's main reason for cooking right now."
         )
 
+    # Build recipe hint block — used when user clicks "Cook this" on a meal planner AI stub
+    hint_block = ""
+    if body.recipe_hint and body.recipe_hint.strip():
+        hint_block = (
+            f"\n\nDISH TARGET — USER'S CHOSEN MEAL:\n"
+            f"The user specifically wants to make: \"{body.recipe_hint.strip()}\".\n"
+            f"Build the recipe around this dish. Use the provided fridge ingredients as the base "
+            f"and fill in any remaining standard ingredients needed to complete it."
+        )
+
     # Construct complete LLM prompt
     full_prompt = f"""
 {SYSTEM_PROMPT}
 
 USER FRIDGE INGREDIENTS:
-\"\"\"{ingredients_text}\"\"\"{dietary_block}{expiry_block}
+\"\"\"{ingredients_text}\"\"\"{dietary_block}{expiry_block}{hint_block}
 
 PERSONALITY ASSIGNMENT:
 {personality_instruction}
@@ -433,27 +449,74 @@ async def generate_meal_plan(request: Request, body: MealPlanRequest):  # noqa: 
     chef_name = chef_names.get(personality_key, "Grandma Marie")
     ingredients_section = f"\nAvailable fridge ingredients to incorporate: {ingredients_hint}" if ingredients_hint else ""
 
-    prompt = f"""You are {chef_name}, a friendly AI cooking character.
+    # Mood directive — shapes the overall tone of the entire week
+    MOOD_INSTRUCTIONS = {
+        "light":   "Keep the week LIGHT & FRESH — prioritize salads, lean proteins, steamed vegetables, broths, and dishes under 500 kcal. Nothing heavy or greasy.",
+        "bold":    "Make it BOLD & HEARTY — rich stews, roasted meats, comforting pasta, braised dishes, and full-flavored crowd-pleasers. Go all in.",
+        "quick":   "SPEED is the priority — every single meal must be achievable in 30 minutes or under. One-pan, minimal prep, weeknight-friendly only.",
+        "diverse": "EXPLORE THE WORLD this week — each day should showcase a different global culinary tradition. Actively represent underrepresented cuisines: West African, East African, South Asian, Southeast Asian, Caribbean, Latin American, Middle Eastern, etc. Span continents, not just 'international'.",
+    }
+    mood_block = ""
+    if body.mood and body.mood in MOOD_INSTRUCTIONS:
+        mood_block = f"\n\nMOOD DIRECTIVE — THIS OVERRIDES GENERIC DEFAULTS:\n{MOOD_INSTRUCTIONS[body.mood]}"
 
-Generate a balanced, varied 7-day home meal plan.{ingredients_section}
+    # Cuisine exploration — user picked specific cuisines to discover
+    cuisine_block = ""
+    if body.cuisine_explore:
+        cuisines = ", ".join(body.cuisine_explore)
+        cuisine_block = (
+            f"\n\nCUISINE EXPLORATION — USER REQUEST:\n"
+            f"The user specifically wants to discover: {cuisines}.\n"
+            f"You MUST include at least 2–3 days drawing authentically from this list. "
+            f"Use real dish names, authentic techniques, and correct cultural flavor profiles — do not westernize."
+        )
+
+    # Taste profile — learned from the user's cooking history and saved recipes
+    profile_block = ""
+    if body.taste_profile:
+        top_ings      = body.taste_profile.get("top_ingredients", [])
+        saved_dishes  = body.taste_profile.get("saved_dishes", [])
+        affinities    = body.taste_profile.get("cultural_affinities", [])
+
+        if top_ings or saved_dishes or affinities:
+            profile_block = "\n\nUSER TASTE PROFILE (learned from their cooking history — use this to personalize):"
+            if top_ings:
+                profile_block += f"\n- Ingredients they cook with most: {', '.join(top_ings[:8])}"
+            if affinities:
+                profile_block += f"\n- Cuisines they gravitate toward: {', '.join(affinities[:5])}"
+            if saved_dishes:
+                profile_block += f"\n- Dishes they've loved and saved: {', '.join(saved_dishes[:6])}"
+            profile_block += (
+                "\n\nUse this profile to make the plan feel personally tailored — build on flavor profiles, "
+                "ingredients, and cuisines the user already enjoys, while keeping enough variety that the week feels exciting, not repetitive."
+            )
+
+    prompt = f"""You are {chef_name}, a friendly and knowledgeable AI cooking character with deep expertise in global cuisines.
+
+Generate a personalized, varied 7-day home meal plan.{ingredients_section}{mood_block}{cuisine_block}{profile_block}
 
 Return ONLY a JSON array with exactly 7 objects, one per day of the week, in this exact format:
 [
   {{
     "day": "Monday",
-    "meal_name": "Recipe Title Here",
-    "description": "One cozy sentence describing the dish in the chef's voice.",
+    "meal_name": "Dish Name (use authentic cultural name where applicable)",
+    "description": "One warm, enticing sentence about this dish in the chef's voice.",
     "cooking_time": "25 mins",
     "key_ingredients": ["ingredient1", "ingredient2", "ingredient3"]
   }}
 ]
 
-Rules: vary proteins and cooking styles across the week (no repeats). Keep descriptions warm and encouraging. Return ONLY the raw JSON array, no markdown."""
+Rules:
+- Vary proteins, cooking styles, and cultural origins across the 7 days — no repeated cuisines back-to-back.
+- If the user requested diverse cuisines, honor that — each day can be a passport stamp.
+- Use real, recognizable dish names (e.g. "Jollof Rice", "Pad Thai", "Shakshuka", "Lentil Dahl") not generic descriptions.
+- Keep descriptions warm and in the chef's voice.
+- Return ONLY the raw JSON array, no markdown, no wrapper text."""
 
     try:
         client = _create_client()
         response = client.models.generate_content(
-            model=RECIPE_MODEL,
+            model=PLAN_MODEL,
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.85,
