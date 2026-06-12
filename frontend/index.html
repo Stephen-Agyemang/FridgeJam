@@ -144,6 +144,20 @@
                             </div>
                         </div>
 
+                        <!-- Dietary Restrictions -->
+                        <div class="dietary-section">
+                            <label class="dietary-label">Dietary restrictions <span class="dietary-optional">(optional)</span></label>
+                            <div class="dietary-chips" role="group" aria-label="Dietary restrictions">
+                                <button type="button" class="dietary-chip" data-restriction="halal" aria-pressed="false">Halal</button>
+                                <button type="button" class="dietary-chip" data-restriction="vegetarian" aria-pressed="false">Vegetarian</button>
+                                <button type="button" class="dietary-chip" data-restriction="vegan" aria-pressed="false">Vegan</button>
+                                <button type="button" class="dietary-chip" data-restriction="gluten-free" aria-pressed="false">Gluten-free</button>
+                                <button type="button" class="dietary-chip" data-restriction="nut-free" aria-pressed="false">Nut-free</button>
+                                <button type="button" class="dietary-chip" data-restriction="dairy-free" aria-pressed="false">Dairy-free</button>
+                                <button type="button" class="dietary-chip" data-restriction="kosher" aria-pressed="false">Kosher</button>
+                            </div>
+                        </div>
+
                         <div class="action-btn-container">
                             <button type="button" id="btn-cook" class="btn-primary" disabled aria-label="Let's Cook">
                                 <span>Let's Cook</span>
@@ -451,6 +465,61 @@
             <p class="footer-tagline">Every fridge. Every culture. Every dish.</p>
             <p>fridgejam &copy; 2026. Made with Lora &amp; Outfit typography.</p>
         </footer>
+    </div>
+
+    <!-- Live Camera Capture Modal -->
+    <div id="camera-modal" class="camera-modal hidden" role="dialog" aria-label="Camera capture">
+        <div class="camera-modal-inner">
+            <div class="camera-modal-header">
+                <h3 class="camera-modal-title">Scan Your Fridge</h3>
+                <button type="button" id="camera-close-btn" class="camera-close-btn" aria-label="Close camera">&times;</button>
+            </div>
+            <div class="camera-preview-wrap">
+                <video id="camera-preview" class="camera-preview" autoplay playsinline muted></video>
+                <canvas id="camera-canvas" style="display:none"></canvas>
+                <div class="camera-corner camera-corner-tl"></div>
+                <div class="camera-corner camera-corner-tr"></div>
+                <div class="camera-corner camera-corner-bl"></div>
+                <div class="camera-corner camera-corner-br"></div>
+            </div>
+            <div class="camera-controls">
+                <button type="button" id="camera-torch-btn" class="camera-torch-btn hidden" aria-label="Toggle flashlight">🔦 Torch: Off</button>
+                <button type="button" id="camera-capture-btn" class="camera-capture-btn" aria-label="Take photo">📸 Capture</button>
+            </div>
+            <button type="button" id="camera-upload-fallback" class="camera-upload-fallback">Upload from gallery instead</button>
+        </div>
+    </div>
+
+    <!-- Scan Review Modal — user verifies detected ingredients before adding -->
+    <div id="scan-review-modal" class="scan-review-modal hidden" role="dialog" aria-label="Review detected ingredients">
+        <div class="scan-review-inner">
+            <div class="scan-review-header">
+                <span class="scan-review-icon">🔍</span>
+                <h3 class="scan-review-title">We spotted these ingredients</h3>
+                <p class="scan-review-subtitle">Uncheck anything that looks wrong before adding.</p>
+            </div>
+            <div id="scan-review-list" class="scan-review-list"></div>
+            <div class="scan-review-actions">
+                <button type="button" id="scan-review-confirm" class="scan-review-confirm">Add to my list</button>
+                <button type="button" id="scan-review-cancel" class="scan-review-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voice Confirmation Modal — shows what was heard before committing -->
+    <div id="voice-confirm-modal" class="voice-confirm-modal hidden" role="dialog" aria-label="Confirm voice input">
+        <div class="voice-confirm-inner">
+            <div class="voice-confirm-header">
+                <span class="voice-confirm-icon">🎤</span>
+                <h3 class="voice-confirm-title">I heard these ingredients</h3>
+                <p class="voice-confirm-subtitle">Remove anything that doesn't look right.</p>
+            </div>
+            <div id="voice-confirm-list" class="voice-confirm-list"></div>
+            <div class="voice-confirm-actions">
+                <button type="button" id="voice-confirm-add" class="voice-confirm-add">Add to my list</button>
+                <button type="button" id="voice-confirm-cancel" class="voice-confirm-cancel">Try again</button>
+            </div>
+        </div>
     </div>
 
     <!-- Recipe Box Drawer Overlay -->

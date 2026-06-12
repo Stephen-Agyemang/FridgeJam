@@ -68,7 +68,9 @@ def _create_client():
 
 class RecipeRequest(BaseModel):
     ingredients: str
-    personality: str  # "budget", "grandma", or "chef"
+    personality: str  # "budget", "grandma", "chef", or "chloe"
+    dietary_restrictions: Optional[list[str]] = []
+    expiring_soon: Optional[list[str]] = []
 
 
 class ImageRequest(BaseModel):
@@ -109,15 +111,76 @@ async def generate_recipe(request: Request, body: RecipeRequest):
     personality_key = body.personality.lower()
     if personality_key not in PERSONALITY_PROMPTS:
         personality_key = "grandma"  # Default fallback
-    
+
     personality_instruction = PERSONALITY_PROMPTS[personality_key]
-    
+
+    # Build dietary restriction block — these are hard safety constraints
+    RESTRICTION_RULES = {
+        "halal": (
+            "NO pork, pork derivatives (lard, gelatin from pork, etc.), or alcohol of any kind. "
+            "All meat must be halal-compliant. No animal shortening or non-halal additives."
+        ),
+        "vegetarian": (
+            "NO meat, poultry, or seafood of any kind. Dairy and eggs are permitted."
+        ),
+        "vegan": (
+            "NO animal products whatsoever — no meat, poultry, seafood, dairy (milk, butter, cheese, cream, yogurt, ghee), "
+            "eggs, honey, or any animal-derived ingredient."
+        ),
+        "gluten-free": (
+            "NO wheat, barley, rye, spelt, kamut, triticale, or any ingredient derived from them "
+            "(including flour, bread, pasta, soy sauce unless certified GF, beer, malt). "
+            "Flag any ingredient with potential cross-contamination risk."
+        ),
+        "nut-free": (
+            "NO nuts of any kind — no peanuts (also a legume but treated as a nut allergy), "
+            "tree nuts (almonds, cashews, walnuts, pecans, pistachios, macadamia, brazil nuts, hazelnuts, pine nuts), "
+            "nut oils, nut butters, or nut extracts. This is a life-threatening allergy risk."
+        ),
+        "dairy-free": (
+            "NO milk, butter, cheese, cream, yogurt, ghee, lactose, whey, casein, or any dairy derivative."
+        ),
+        "kosher": (
+            "NO pork or pork products. NO shellfish or non-kosher seafood. "
+            "Do NOT mix meat and dairy in the same dish."
+        ),
+    }
+
+    active_restrictions = [r.lower().strip() for r in (body.dietary_restrictions or []) if r.strip()]
+    dietary_block = ""
+    if active_restrictions:
+        restriction_lines = []
+        for r in active_restrictions:
+            if r in RESTRICTION_RULES:
+                restriction_lines.append(f"  - {r.upper()}: {RESTRICTION_RULES[r]}")
+        if restriction_lines:
+            dietary_block = (
+                "\n\nHARD DIETARY RESTRICTIONS — NON-NEGOTIABLE SAFETY CONSTRAINTS:\n"
+                "The user has declared the following dietary requirements. You MUST NOT violate any of them "
+                "under any circumstances. These are not preferences — they may be life-threatening allergies "
+                "or sincere religious obligations. If a user ingredient itself violates a restriction, "
+                "omit it and note the substitution in the chef's intro.\n"
+                + "\n".join(restriction_lines)
+            )
+
+    # Build expiry-first priority block
+    expiring = [i.strip() for i in (body.expiring_soon or []) if i.strip()]
+    expiry_block = ""
+    if expiring:
+        expiry_list = ", ".join(expiring)
+        expiry_block = (
+            f"\n\nEXPIRY-FIRST MODE — FOOD WASTE PRIORITY:\n"
+            f"The following ingredients are expiring soon: {expiry_list}.\n"
+            f"You MUST build the dish primarily around these ingredients — use them generously and as central components, "
+            f"not as optional garnishes. This is the user's main reason for cooking right now."
+        )
+
     # Construct complete LLM prompt
     full_prompt = f"""
 {SYSTEM_PROMPT}
 
 USER FRIDGE INGREDIENTS:
-\"\"\"{ingredients_text}\"\"\"
+\"\"\"{ingredients_text}\"\"\"{dietary_block}{expiry_block}
 
 PERSONALITY ASSIGNMENT:
 {personality_instruction}
@@ -196,9 +259,16 @@ async def scan_fridge(request: Request, file: UploadFile = File(...)):
         
         client = _create_client()
         prompt = (
-            "Analyze this image of a fridge or ingredients. Identify the edible food ingredients visible. "
-            "Return ONLY a comma-separated list of 2 to 8 raw ingredients, all lowercase (e.g. eggs, spinach, onion, cheese). "
-            "Do not include any formatting, markdown, punctuation (except commas), or extra words. If no ingredients are found, return an empty string."
+            "You are a careful culinary ingredient scanner. Analyze this image of a fridge, pantry, or collection of food items. "
+            "Identify ALL visible edible food ingredients with precision. "
+            "Be especially thorough about spotting: nuts (peanuts, almonds, cashews, etc.), dairy products (milk, cheese, butter, cream), "
+            "meat and seafood (including processed meats, fish sauce, anchovies), gluten-containing items (bread, flour, pasta, soy sauce), "
+            "and any packaged goods whose labels are partially visible. "
+            "Return ONLY a comma-separated list of specific raw ingredient names, all lowercase. "
+            "Be specific — write 'peanut butter' not just 'spread', 'cow's milk' not just 'drink', 'wheat flour' not just 'flour' if visible. "
+            "List between 2 and 12 ingredients. Do not include brand names, packaging descriptions, or non-food items. "
+            "Do not include any formatting, markdown, or extra words — only the comma-separated ingredient list. "
+            "If no food ingredients are visible, return an empty string."
         )
         
         response = client.models.generate_content(

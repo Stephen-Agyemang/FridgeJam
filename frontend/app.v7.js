@@ -204,7 +204,9 @@ let appState = {
     selectedPersonality: 'grandma', // default selected
     currentRecipe: null,
     favorites: [],  // loaded dynamically from localStorage on boot
-    mealPlan: {}    // loaded dynamically from localStorage on boot
+    mealPlan: {},   // loaded dynamically from localStorage on boot
+    dietaryRestrictions: [],
+    expiringIngredients: new Set() // Expiry-First Mode: ingredients marked as expiring soon
 };
 
 // --- View State Manager (Refined with Modal Overlay Support) ---
@@ -318,7 +320,15 @@ function updateInputTextareaAndSync() {
     });
     
     appState.ingredients = uniqueIngs;
-    
+
+    // Prune expiring set — remove any ingredient that's no longer in the list
+    const lowerIngs = uniqueIngs.map(i => i.toLowerCase());
+    for (const exp of appState.expiringIngredients) {
+        if (!lowerIngs.includes(exp.toLowerCase())) {
+            appState.expiringIngredients.delete(exp);
+        }
+    }
+
     // 4. Render pill tags pool
     renderIngredientsTags();
     
@@ -393,34 +403,62 @@ function updateInputTextareaAndSync() {
 function renderIngredientsTags() {
     DOM.ingredientsPool.innerHTML = '';
     const jarEmpty = document.getElementById('leftovers-jar-empty');
-    
+
     if (appState.ingredients.length === 0) {
         DOM.ingredientsPool.innerHTML = '<span class="placeholder-tag">Your cooking counter is empty...</span>';
         if (jarEmpty) jarEmpty.classList.remove('hidden');
         return;
     }
-    
+
     if (jarEmpty) jarEmpty.classList.add('hidden');
-    
+
+    const hasAny = appState.ingredients.length > 0;
+
     appState.ingredients.forEach((ing, index) => {
+        const isExpiring = appState.expiringIngredients.has(ing);
         const tag = document.createElement('span');
-        tag.className = 'ingredient-tag';
+        tag.className = `ingredient-tag${isExpiring ? ' expiring' : ''}`;
         tag.innerHTML = `
+            <button class="btn-tag-expiry" type="button" title="${isExpiring ? 'Unmark as expiring' : 'Mark as expiring soon — chef will prioritize this'}" aria-label="${isExpiring ? 'Unmark expiring' : 'Mark expiring'}" aria-pressed="${isExpiring}">⚠️</button>
             ${escapeHtml(ing)}
             <button class="btn-tag-remove" type="button" aria-label="Remove ${escapeHtml(ing)}">&times;</button>
         `;
-        
-        // Remove tag and update textarea
+
+        tag.querySelector('.btn-tag-expiry').addEventListener('click', () => {
+            toggleExpiringIngredient(ing);
+        });
+
         tag.querySelector('.btn-tag-remove').addEventListener('click', () => {
             removeIngredient(index);
         });
-        
+
         DOM.ingredientsPool.appendChild(tag);
     });
+
+    // Show hint only when there are ingredients but none are flagged yet
+    let hint = DOM.ingredientsPool.querySelector('.expiry-hint');
+    if (!hint) {
+        hint = document.createElement('p');
+        hint.className = 'expiry-hint';
+        hint.textContent = 'Tap ⚠️ on any ingredient to mark it as expiring soon — the chef will build the dish around it first.';
+        DOM.ingredientsPool.appendChild(hint);
+    }
+    hint.classList.toggle('visible', hasAny && appState.expiringIngredients.size === 0);
+}
+
+function toggleExpiringIngredient(ing) {
+    if (appState.expiringIngredients.has(ing)) {
+        appState.expiringIngredients.delete(ing);
+    } else {
+        appState.expiringIngredients.add(ing);
+        if (synth && typeof synth.playDialClick === 'function') synth.playDialClick();
+    }
+    renderIngredientsTags();
 }
 
 function removeIngredient(index) {
-    appState.ingredients.splice(index, 1);
+    const removed = appState.ingredients.splice(index, 1)[0];
+    appState.expiringIngredients.delete(removed);
     DOM.ingredientsInput.value = appState.ingredients.join(', ');
     updateInputTextareaAndSync();
 }
@@ -1104,7 +1142,9 @@ async function startCooking() {
         // Retry once on 5xx / network failure to survive Cloud Run cold-start timeouts.
         const recipePayload = JSON.stringify({
             ingredients: ingredientsPayload,
-            personality: appState.selectedPersonality
+            personality: appState.selectedPersonality,
+            dietary_restrictions: appState.dietaryRestrictions,
+            expiring_soon: [...appState.expiringIngredients]
         });
         let recipeResponse = null;
         for (let attempt = 0; attempt <= 1; attempt++) {
@@ -1178,6 +1218,104 @@ async function startCooking() {
         showState('input');
         showToast(err.message || "The skillet overflowed! Please try again.");
     }
+}
+
+// ─────────────────────────────────────────────
+// FEATURE: Step-by-Step Cooking Timers
+// ─────────────────────────────────────────────
+
+const activeTimers = {};
+
+function parseStepDuration(text) {
+    // "X to Y hours/minutes/seconds" → take midpoint. "X hours/minutes/seconds" → exact.
+    const hourMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:to\s*(\d+(?:\.\d+)?)\s*)?hours?/i);
+    if (hourMatch) {
+        const lo = parseFloat(hourMatch[1]);
+        const hi = hourMatch[2] ? parseFloat(hourMatch[2]) : lo;
+        return Math.round(((lo + hi) / 2) * 3600);
+    }
+    const minMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:to\s*(\d+(?:\.\d+)?)\s*)?min(?:utes?)?/i);
+    if (minMatch) {
+        const lo = parseFloat(minMatch[1]);
+        const hi = minMatch[2] ? parseFloat(minMatch[2]) : lo;
+        return Math.round(((lo + hi) / 2) * 60);
+    }
+    const secMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:to\s*(\d+(?:\.\d+)?)\s*)?secs?(?:onds?)?/i);
+    if (secMatch) {
+        const lo = parseFloat(secMatch[1]);
+        const hi = secMatch[2] ? parseFloat(secMatch[2]) : lo;
+        return Math.round((lo + hi) / 2);
+    }
+    return null;
+}
+
+function formatDuration(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) return `${h}h ${m > 0 ? m + 'm' : ''}`.trim();
+    if (m > 0) return s > 0 ? `${m}m ${s}s` : `${m}m`;
+    return `${s}s`;
+}
+
+function formatCountdown(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function clearAllTimers() {
+    Object.values(activeTimers).forEach(id => clearInterval(id));
+    Object.keys(activeTimers).forEach(k => delete activeTimers[k]);
+}
+
+async function startStepTimer(btn, totalSeconds, stepIdx, stepText) {
+    // Tap again while running → cancel
+    if (activeTimers[stepIdx]) {
+        clearInterval(activeTimers[stepIdx]);
+        delete activeTimers[stepIdx];
+        btn.textContent = `⏱ ${formatDuration(totalSeconds)}`;
+        btn.classList.remove('timer-running', 'timer-done');
+        return;
+    }
+
+    // Ask for notification permission on first use (non-blocking)
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+
+    let remaining = totalSeconds;
+    btn.textContent = `⏹ ${formatCountdown(remaining)}`;
+    btn.classList.add('timer-running');
+
+    activeTimers[stepIdx] = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+            clearInterval(activeTimers[stepIdx]);
+            delete activeTimers[stepIdx];
+            btn.textContent = '✅ Done!';
+            btn.classList.remove('timer-running');
+            btn.classList.add('timer-done');
+
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('FridgeJam — Timer Done!', {
+                    body: stepText.length > 80 ? stepText.slice(0, 77) + '…' : stepText,
+                    icon: '/favicon.ico'
+                });
+            }
+            if (synth && typeof synth.playBubble === 'function') synth.playBubble();
+
+            // Auto-reset button after 4 seconds
+            setTimeout(() => {
+                btn.textContent = `⏱ ${formatDuration(totalSeconds)}`;
+                btn.classList.remove('timer-done');
+            }, 4000);
+        } else {
+            btn.textContent = `⏹ ${formatCountdown(remaining)}`;
+        }
+    }, 1000);
 }
 
 // --- Render Recipe Details ---
@@ -1511,12 +1649,23 @@ function renderRecipeScreen(recipe, imageResult) {
         });
     }
 
-    // 5. Preparation Steps
+    // 5. Preparation Steps (with inline cooking timers)
+    clearAllTimers();
     if (DOM.recipeStepsList) {
         DOM.recipeStepsList.innerHTML = '';
-        recipe.steps.forEach(step => {
+        recipe.steps.forEach((step, idx) => {
             const li = document.createElement('li');
-            li.textContent = step;
+            const duration = parseStepDuration(step);
+            li.innerHTML = `<span class="step-text">${escapeHtml(step)}</span>`;
+            if (duration) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'step-timer-btn';
+                btn.dataset.duration = duration;
+                btn.textContent = `⏱ ${formatDuration(duration)}`;
+                btn.addEventListener('click', () => startStepTimer(btn, duration, idx, step));
+                li.appendChild(btn);
+            }
             DOM.recipeStepsList.appendChild(li);
         });
     }
@@ -1773,95 +1922,196 @@ function initEvents() {
         DOM.ingredientsInput.addEventListener('input', updateInputTextareaAndSync);
     }
 
-    // Fridge Photo Scanner: Trigger hidden input file dialog on button click
-    if (DOM.btnScanPhoto && DOM.fridgePhotoInput) {
-        DOM.btnScanPhoto.addEventListener('click', () => {
+    // ── Fridge Photo Scanner ──────────────────────────────────────────────────
+    // Opens live camera modal (with torch on supported devices), falls back to
+    // file upload. After Gemini scans the image, shows a review step so the
+    // user can verify detected ingredients before they're added to the list.
+
+    let cameraStream = null;
+    let torchOn = false;
+
+    function closeCameraModal() {
+        const modal = document.getElementById('camera-modal');
+        if (modal) modal.classList.add('hidden');
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(t => t.stop());
+            cameraStream = null;
+        }
+        torchOn = false;
+    }
+
+    async function openCameraModal() {
+        const modal = document.getElementById('camera-modal');
+        const video = document.getElementById('camera-preview');
+        const torchBtn = document.getElementById('camera-torch-btn');
+        if (!modal || !video) return;
+
+        modal.classList.remove('hidden');
+
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: { ideal: 'environment' },
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                }
+            });
+            video.srcObject = cameraStream;
+
+            // Enable torch button only if the device supports it
+            const track = cameraStream.getVideoTracks()[0];
+            const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+            if (capabilities.torch) {
+                torchBtn.classList.remove('hidden');
+                torchBtn.onclick = async () => {
+                    torchOn = !torchOn;
+                    await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+                    torchBtn.textContent = torchOn ? '🔦 Torch: On' : '🔦 Torch: Off';
+                    torchBtn.classList.toggle('torch-active', torchOn);
+                };
+            } else {
+                torchBtn.classList.add('hidden');
+            }
+        } catch (_) {
+            // Camera permission denied or unavailable — fall back to file upload
+            closeCameraModal();
             DOM.fridgePhotoInput.click();
-            if (synth && typeof synth.playDialClick === 'function') {
-                synth.playDialClick();
+        }
+    }
+
+    function captureFrameFromCamera() {
+        const video = document.getElementById('camera-preview');
+        const canvas = document.getElementById('camera-canvas');
+        if (!video || !canvas) return null;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+    }
+
+    async function runScan(fileOrBlob) {
+        const scanOverlay = document.createElement('div');
+        scanOverlay.className = 'scan-overlay';
+        scanOverlay.innerHTML = `
+            <div class="scan-overlay-content">
+                <div class="scanner-laser"></div>
+                <div class="scan-spinner">📸</div>
+                <h3 style="font-family:var(--font-display);font-weight:700;margin-bottom:8px;">Scanning ingredients...</h3>
+                <p style="font-family:var(--font-body);font-size:0.9rem;color:var(--text-secondary);">Gemini is carefully identifying everything it can see...</p>
+            </div>`;
+        document.body.appendChild(scanOverlay);
+
+        try {
+            const formData = new FormData();
+            formData.append('file', fileOrBlob, 'fridge.jpg');
+            const response = await fetch('/api/scan', { method: 'POST', body: formData });
+            if (!response.ok) throw new Error('Scan failed');
+            const data = await response.json();
+            const detected = data.ingredients || [];
+            document.body.removeChild(scanOverlay);
+            if (detected.length > 0) {
+                showScanReview(detected);
+            } else {
+                showToast("Couldn't spot any ingredients — try better lighting or a closer angle.");
+            }
+        } catch (err) {
+            console.error('Scanning failed:', err);
+            if (document.body.contains(scanOverlay)) document.body.removeChild(scanOverlay);
+            showToast("The fridge scanner had a glitch. Please try again!");
+        }
+    }
+
+    function showScanReview(ingredients) {
+        const modal = document.getElementById('scan-review-modal');
+        const list = document.getElementById('scan-review-list');
+        if (!modal || !list) return;
+
+        list.innerHTML = ingredients.map((ing, i) => `
+            <label class="scan-review-item">
+                <input type="checkbox" class="scan-review-check" data-ing="${escapeHtml(ing)}" checked>
+                <span class="scan-review-ing">${escapeHtml(ing)}</span>
+            </label>
+        `).join('');
+
+        modal.classList.remove('hidden');
+
+        document.getElementById('scan-review-confirm').onclick = () => {
+            const checked = [...list.querySelectorAll('.scan-review-check:checked')]
+                .map(cb => cb.dataset.ing);
+            modal.classList.add('hidden');
+            commitIngredientsToList(checked, 'scan');
+        };
+
+        document.getElementById('scan-review-cancel').onclick = () => {
+            modal.classList.add('hidden');
+        };
+    }
+
+    function commitIngredientsToList(ingredients, source) {
+        let added = 0;
+        let idx = 0;
+        function addNext() {
+            if (idx >= ingredients.length) {
+                if (added > 0) {
+                    const label = source === 'scan' ? `Added ${added} ingredient${added > 1 ? 's' : ''} from scan` : `Added ${added} ingredient${added > 1 ? 's' : ''} from voice`;
+                    showToast(label);
+                }
+                return;
+            }
+            const ing = ingredients[idx];
+            if (!appState.ingredients.some(e => e.toLowerCase() === ing.toLowerCase())) {
+                const cur = DOM.ingredientsInput.value.trim();
+                DOM.ingredientsInput.value = cur === '' || cur.endsWith(',') ? cur + ing : `${cur}, ${ing}`;
+                updateInputTextareaAndSync();
+                if (synth && typeof synth.playBubble === 'function') synth.playBubble();
+                added++;
+            }
+            idx++;
+            setTimeout(addNext, 350);
+        }
+        addNext();
+    }
+
+    // Wire up camera button
+    if (DOM.btnScanPhoto) {
+        DOM.btnScanPhoto.addEventListener('click', () => {
+            if (synth && typeof synth.playDialClick === 'function') synth.playDialClick();
+            // Try live camera first; openCameraModal falls back to file picker if unavailable
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                openCameraModal();
+            } else {
+                DOM.fridgePhotoInput.click();
             }
         });
-        
+    }
+
+    // Camera modal controls
+    const cameraCaptureBtn = document.getElementById('camera-capture-btn');
+    if (cameraCaptureBtn) {
+        cameraCaptureBtn.addEventListener('click', async () => {
+            const blob = await captureFrameFromCamera();
+            closeCameraModal();
+            if (blob) runScan(blob);
+        });
+    }
+    const cameraCloseBtn = document.getElementById('camera-close-btn');
+    if (cameraCloseBtn) cameraCloseBtn.addEventListener('click', closeCameraModal);
+
+    const cameraUploadFallback = document.getElementById('camera-upload-fallback');
+    if (cameraUploadFallback) {
+        cameraUploadFallback.addEventListener('click', () => {
+            closeCameraModal();
+            DOM.fridgePhotoInput.click();
+        });
+    }
+
+    // File upload fallback (existing hidden input)
+    if (DOM.fridgePhotoInput) {
         DOM.fridgePhotoInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            
-            // Show custom glassmorphic scanner overlay
-            const scanOverlay = document.createElement('div');
-            scanOverlay.className = 'scan-overlay';
-            scanOverlay.innerHTML = `
-                <div class="scan-overlay-content">
-                    <div class="scanner-laser"></div>
-                    <div class="scan-spinner">📸</div>
-                    <h3 style="font-family: var(--font-display); font-weight: 700; margin-bottom: 8px;">Scanning your fridge...</h3>
-                    <p style="font-family: var(--font-body); font-size: 0.9rem; color: var(--text-secondary);">Our culinary scanner is analyzing the image...</p>
-                </div>
-            `;
-            document.body.appendChild(scanOverlay);
-            
-            // Prepare request payload
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            try {
-                const response = await fetch('/api/scan', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Scanner response failed.');
-                }
-                
-                const data = await response.json();
-                
-                // Clear the input file selection
-                DOM.fridgePhotoInput.value = '';
-                
-                // Dismiss the overlay
-                if (document.body.contains(scanOverlay)) {
-                    document.body.removeChild(scanOverlay);
-                }
-                
-                const newIngredients = data.ingredients || [];
-                if (newIngredients.length > 0) {
-                    // Append detected ingredients one by one with a delay to watch them drop into Leftovers Jar
-                    let idx = 0;
-                    function addNext() {
-                        if (idx < newIngredients.length) {
-                            const ing = newIngredients[idx];
-                            
-                            // Check if ingredient is already in the list to avoid duplicate drops
-                            if (!appState.ingredients.some(existing => existing.toLowerCase() === ing.toLowerCase())) {
-                                const currentText = DOM.ingredientsInput.value.trim();
-                                const appendStr = (currentText === "" || currentText.endsWith(",")) ? ing : `, ${ing}`;
-                                DOM.ingredientsInput.value += appendStr;
-                                updateInputTextareaAndSync();
-                                
-                                // Play cute bubble sound!
-                                if (synth && typeof synth.playBubble === 'function') {
-                                    synth.playBubble();
-                                }
-                            }
-                            
-                            idx++;
-                            setTimeout(addNext, 450);
-                        } else {
-                            showToast(`Scanned ${newIngredients.length} ingredients successfully! 📸`);
-                        }
-                    }
-                    addNext();
-                } else {
-                    showToast("We couldn't spot any ingredients in the photo. Try another angle or check the lighting! 🔍");
-                }
-                
-            } catch (err) {
-                console.error("Scanning failed:", err);
-                if (document.body.contains(scanOverlay)) {
-                    document.body.removeChild(scanOverlay);
-                }
-                showToast("The fridge scanner had a glitch. Please try again!");
-            }
+            DOM.fridgePhotoInput.value = '';
+            await runScan(file);
         });
     }
 
@@ -1949,8 +2199,9 @@ function initEvents() {
     // Reset button (Cook Another Dish)
     if (DOM.btnRestart) {
         DOM.btnRestart.addEventListener('click', () => {
-            // Soft reset inputs
+            clearAllTimers();
             appState.ingredients = [];
+            appState.expiringIngredients.clear();
             appState.currentRecipe = null;
             DOM.ingredientsInput.value = '';
             updateInputTextareaAndSync();
@@ -1992,6 +2243,23 @@ function initEvents() {
 
     // Initialize drawer resizing capability
     initDrawerResize();
+
+    // Dietary restriction chip toggles
+    document.querySelectorAll('.dietary-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const restriction = chip.dataset.restriction;
+            const active = appState.dietaryRestrictions.includes(restriction);
+            if (active) {
+                appState.dietaryRestrictions = appState.dietaryRestrictions.filter(r => r !== restriction);
+                chip.classList.remove('dietary-chip-active');
+                chip.setAttribute('aria-pressed', 'false');
+            } else {
+                appState.dietaryRestrictions.push(restriction);
+                chip.classList.add('dietary-chip-active');
+                chip.setAttribute('aria-pressed', 'true');
+            }
+        });
+    });
 }
 
 // --- Drawer Resizing Handler ---
@@ -2382,28 +2650,44 @@ function initVoiceInput() {
 
     voiceRecognition = new SpeechRecognition();
     voiceRecognition.continuous = false;
-    voiceRecognition.interimResults = false;
+    voiceRecognition.interimResults = true; // show live transcript as user speaks
     voiceRecognition.lang = 'en-US';
 
     voiceRecognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        const currentText = DOM.ingredientsInput.value.trim();
-        const separator = (currentText === '' || currentText.endsWith(',')) ? ' ' : ', ';
-        DOM.ingredientsInput.value = currentText + separator + transcript;
-        updateInputTextareaAndSync();
-        showToast(`Added: "${transcript}" 🎤`);
+        let interim = '';
+        let final = '';
+        for (const result of event.results) {
+            if (result.isFinal) final += result[0].transcript;
+            else interim += result[0].transcript;
+        }
+        // Show live interim text in the button label
+        const text = document.getElementById('voice-btn-text');
+        if (text && (interim || final)) {
+            text.textContent = interim || final;
+        }
+
+        if (final.trim()) {
+            voiceRecognition._finalTranscript = final.trim();
+        }
     };
 
     voiceRecognition.onend = () => {
         isListening = false;
         updateVoiceBtnState(false);
+        const transcript = voiceRecognition._finalTranscript;
+        voiceRecognition._finalTranscript = null;
+        if (transcript) {
+            showVoiceConfirm(transcript);
+        }
     };
 
     voiceRecognition.onerror = (event) => {
         isListening = false;
         updateVoiceBtnState(false);
-        if (event.error !== 'no-speech') {
-            showToast('Microphone issue — please check browser permissions!');
+        if (event.error === 'not-allowed') {
+            showToast('Microphone access denied — please allow it in your browser settings.');
+        } else if (event.error !== 'no-speech') {
+            showToast('Microphone issue — please try again.');
         }
     };
 
@@ -2424,6 +2708,37 @@ function initVoiceInput() {
             }
         });
     }
+}
+
+function showVoiceConfirm(transcript) {
+    // Parse the transcript into individual ingredient tokens
+    const raw = transcript.split(/,|and\b|\bwith\b/i)
+        .map(s => s.trim().toLowerCase())
+        .filter(s => s.length > 1);
+
+    const modal = document.getElementById('voice-confirm-modal');
+    const list = document.getElementById('voice-confirm-list');
+    if (!modal || !list || raw.length === 0) return;
+
+    list.innerHTML = raw.map(ing => `
+        <label class="voice-confirm-item">
+            <input type="checkbox" class="voice-confirm-check" data-ing="${escapeHtml(ing)}" checked>
+            <span class="voice-confirm-ing">${escapeHtml(ing)}</span>
+        </label>
+    `).join('');
+
+    modal.classList.remove('hidden');
+
+    document.getElementById('voice-confirm-add').onclick = () => {
+        const checked = [...list.querySelectorAll('.voice-confirm-check:checked')]
+            .map(cb => cb.dataset.ing);
+        modal.classList.add('hidden');
+        commitIngredientsToList(checked, 'voice');
+    };
+
+    document.getElementById('voice-confirm-cancel').onclick = () => {
+        modal.classList.add('hidden');
+    };
 }
 
 function updateVoiceBtnState(listening) {
