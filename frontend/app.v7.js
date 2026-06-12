@@ -187,7 +187,15 @@ const DOM = {
     recipeBoxDrawer: document.getElementById('recipe-box-drawer'),
     recipeBoxBackdrop: document.getElementById('recipe-box-backdrop'),
     recipeBoxClose: document.getElementById('recipe-box-close'),
-    recipeBoxList: document.getElementById('recipe-box-list')
+    recipeBoxList: document.getElementById('recipe-box-list'),
+
+    // Cultural intelligence elements
+    culturalOriginBadge: document.getElementById('cultural-origin-badge'),
+    culturalOriginFlag: document.getElementById('cultural-origin-flag'),
+    culturalOriginLabel: document.getElementById('cultural-origin-label'),
+    missingCallout: document.getElementById('missing-ingredients-callout'),
+    missingCalloutTitle: document.getElementById('missing-callout-title'),
+    missingCalloutChips: document.getElementById('missing-callout-chips')
 };
 
 // Global App State
@@ -1370,7 +1378,75 @@ function renderRecipeScreen(recipe, imageResult) {
     if (DOM.recipeIntro) DOM.recipeIntro.textContent = `A custom creation in the voice of ${badgeInfo.text.replace("Plated by ", "")}`;
     if (DOM.recipeNarrativeText) DOM.recipeNarrativeText.textContent = recipe.personality_intro;
 
-    // 3b. Nutrition Facts Card (with smart unit parsing and safe backwards-compatible fallback)
+    // 3b. Cultural Origin Badge
+    const culturalOriginMap = {
+        'west african':     '🌍',
+        'east african':     '🌍',
+        'north african':    '🌍',
+        'central african':  '🌍',
+        'african':          '🌍',
+        'ghanaian':         '🇬🇭',
+        'nigerian':         '🇳🇬',
+        'ethiopian':        '🇪🇹',
+        'senegalese':       '🇸🇳',
+        'kenyan':           '🇰🇪',
+        'ugandan':          '🇺🇬',
+        'ivorian':          '🇨🇮',
+        'moroccan':         '🇲🇦',
+        'egyptian':         '🇪🇬',
+        'south asian':      '🌏',
+        'east asian':       '🌏',
+        'southeast asian':  '🌏',
+        'asian':            '🌏',
+        'japanese':         '🇯🇵',
+        'chinese':          '🇨🇳',
+        'korean':           '🇰🇷',
+        'indian':           '🇮🇳',
+        'thai':             '🇹🇭',
+        'vietnamese':       '🇻🇳',
+        'filipino':         '🇵🇭',
+        'indonesian':       '🇮🇩',
+        'middle eastern':   '🌙',
+        'lebanese':         '🇱🇧',
+        'turkish':          '🇹🇷',
+        'persian':          '🇮🇷',
+        'latin american':   '🌎',
+        'mexican':          '🇲🇽',
+        'caribbean':        '🌴',
+        'jamaican':         '🇯🇲',
+        'mediterranean':    '🫒',
+        'italian':          '🇮🇹',
+        'french':           '🇫🇷',
+        'greek':            '🇬🇷',
+    };
+
+    if (DOM.culturalOriginBadge && recipe.cultural_origin) {
+        const originKey = recipe.cultural_origin.toLowerCase();
+        let flag = '🌐';
+        for (const [key, emoji] of Object.entries(culturalOriginMap)) {
+            if (originKey.includes(key)) { flag = emoji; break; }
+        }
+        DOM.culturalOriginFlag.textContent = flag;
+        DOM.culturalOriginLabel.textContent = recipe.cultural_origin;
+        DOM.culturalOriginBadge.classList.remove('hidden');
+    } else if (DOM.culturalOriginBadge) {
+        DOM.culturalOriginBadge.classList.add('hidden');
+    }
+
+    // 3c. Missing ingredients callout
+    const missing = recipe.missing_for_authentic;
+    if (DOM.missingCallout && missing && missing.length > 0) {
+        const dishName = recipe.traditional_dish_name || recipe.title;
+        DOM.missingCalloutTitle.textContent = `To complete a full ${dishName}, add:`;
+        DOM.missingCalloutChips.innerHTML = missing
+            .map(item => `<span class="missing-chip">${escapeHtml(item)}</span>`)
+            .join('');
+        DOM.missingCallout.classList.remove('hidden');
+    } else if (DOM.missingCallout) {
+        DOM.missingCallout.classList.add('hidden');
+    }
+
+    // 3d. Nutrition Facts Card (with smart unit parsing and safe backwards-compatible fallback)
     if (DOM.recipeNutritionCard) {
         if (recipe.nutrition) {
             let calVal = recipe.nutrition.calories;
