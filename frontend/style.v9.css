@@ -670,6 +670,7 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
 .action-btn-container {
   display: flex;
   justify-content: center;
+  margin-top: 12px;
 }
 
 .btn-primary {
