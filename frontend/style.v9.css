@@ -558,8 +558,8 @@ body.dark-theme .ingredient-tag.expiring {
 /* --- Chef Selection Picker --- */
 .chef-selection-group {
   display: grid;
-  grid-template-columns: minmax(280px, 0.95fr) minmax(240px, 1fr);
-  gap: 18px 28px;
+  grid-template-columns: 1fr;
+  gap: 18px;
   align-items: stretch;
   margin-bottom: 32px;
 }
@@ -641,11 +641,12 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
   border: 2px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: 14px 20px;
+  margin-top: 4px;
   text-align: center;
   box-shadow: var(--glass-shadow);
   transition: opacity 0.3s ease, transform 0.3s ease;
   will-change: transform, opacity;
-  min-height: 150px;
+  min-height: 132px;
   display: flex;
   flex-direction: column;
   justify-content: center;
