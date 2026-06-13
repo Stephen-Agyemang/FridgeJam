@@ -365,8 +365,8 @@ body.dark-theme {
 /* --- STEP 1: Interactive Counter Inputs --- */
 .dashboard-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 40px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+  gap: 28px;
   align-items: start;
 }
 
@@ -558,7 +558,7 @@ body.dark-theme .ingredient-tag.expiring {
 /* --- Chef Selection Picker --- */
 .chef-selection-group {
   display: grid;
-  grid-template-columns: minmax(360px, max-content) minmax(280px, 1fr);
+  grid-template-columns: minmax(280px, 0.95fr) minmax(240px, 1fr);
   gap: 18px 28px;
   align-items: stretch;
   margin-bottom: 32px;
@@ -2706,8 +2706,8 @@ body.dark-theme .voice-confirm-item { background: #2A2E45; }
   align-items: center;
   width: 100%;
   margin-bottom: 12px;
-  --jar-width: 220px;
-  --jar-height: 320px;
+  --jar-width: min(210px, 78%);
+  --jar-height: 300px;
 }
 
 /* Cozy Cork Stopper */
