@@ -393,13 +393,17 @@ function updateInputTextareaAndSync() {
                     <span class="slip-label">${escapeHtml(ing)}</span>
                 `;
                 jarContents.appendChild(slip);
+                jarContents.scrollTop = jarContents.scrollHeight;
             }
         });
-        
+
         // Remove extra slips if any
         for (let j = appState.ingredients.length; j < existingSlips.length; j++) {
             existingSlips[j].remove();
         }
+
+        // Keep newest item in view
+        jarContents.scrollTop = jarContents.scrollHeight;
     }
 }
 
@@ -1187,7 +1191,16 @@ async function startCooking() {
         }
         
         appState.currentRecipe = recipeData;
-        
+
+        // Let the user know if the chef auto-corrected any typos
+        const corrections = recipeData.spelling_corrections;
+        if (Array.isArray(corrections) && corrections.length > 0) {
+            const fixes = corrections
+                .map(c => `"${c.original}" → ${c.interpreted_as}`)
+                .join(', ');
+            showToast(`Chef spotted a few typos and kept cooking: ${fixes} 👨‍🍳`);
+        }
+
         // Update progress bar
         setLoadingProgress(85);
         if (DOM.cookingLogText) {
@@ -1607,10 +1620,11 @@ function renderRecipeScreen(recipe, imageResult) {
             } else {
                 calVal = "-";
             }
-            if (DOM.nutrCalories) DOM.nutrCalories.innerHTML = `🔥 <strong>${calVal}</strong>`;
-            if (DOM.nutrProtein) DOM.nutrProtein.innerHTML = `🥩 <strong>${recipe.nutrition.protein || "-"}</strong> Prot`;
-            if (DOM.nutrCarbs) DOM.nutrCarbs.innerHTML = `🍞 <strong>${recipe.nutrition.carbs || "-"}</strong> Carbs`;
-            if (DOM.nutrFat) DOM.nutrFat.innerHTML = `🧈 <strong>${recipe.nutrition.fat || "-"}</strong> Fat`;
+            const safeNum = v => String(v || "-").replace(/[<>"'&]/g, '');
+            if (DOM.nutrCalories) DOM.nutrCalories.innerHTML = `🔥 <strong>${safeNum(calVal)}</strong>`;
+            if (DOM.nutrProtein) DOM.nutrProtein.innerHTML = `🥩 <strong>${safeNum(recipe.nutrition.protein)}</strong> Prot`;
+            if (DOM.nutrCarbs)   DOM.nutrCarbs.innerHTML   = `🍞 <strong>${safeNum(recipe.nutrition.carbs)}</strong> Carbs`;
+            if (DOM.nutrFat)     DOM.nutrFat.innerHTML     = `🧈 <strong>${safeNum(recipe.nutrition.fat)}</strong> Fat`;
             DOM.recipeNutritionCard.style.display = 'flex';
         } else {
             DOM.recipeNutritionCard.style.display = 'none';
@@ -3097,11 +3111,12 @@ async function suggestMealPlanWithAI() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                ingredients:     appState.ingredients.join(', '),
-                personality:     appState.selectedPersonality,
-                mood:            planPrefs.mood,
-                cuisine_explore: [...planPrefs.cuisines],
-                taste_profile:   tasteProfile
+                ingredients:          appState.ingredients.join(', '),
+                personality:          appState.selectedPersonality,
+                dietary_restrictions: appState.dietaryRestrictions,
+                mood:                 planPrefs.mood,
+                cuisine_explore:      [...planPrefs.cuisines],
+                taste_profile:        tasteProfile
             })
         });
 
