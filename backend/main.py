@@ -75,8 +75,8 @@ app.add_middleware(
 
 # Primary model for text/recipe generation
 RECIPE_MODEL = "gemini-2.5-flash"
-# Faster model used for lower-stakes structured tasks (meal plan, jokes)
-PLAN_MODEL = "gemini-2.0-flash"
+# Lower-stakes structured tasks (meal plan, jokes). Gemini 2.0 Flash has been shut down.
+PLAN_MODEL = os.getenv("GEMINI_PLAN_MODEL", "gemini-2.5-flash")
 # Primary model for image generation
 IMAGE_MODEL = "imagen-4.0-generate-001"
 
