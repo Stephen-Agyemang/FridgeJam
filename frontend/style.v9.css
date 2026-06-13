@@ -4637,17 +4637,17 @@ body.dark-theme .mp-cook-btn:hover { background: #5a528a; }
 
 /* ── AI Preference Sheet ──────────────────────────────────────────────────── */
 .mp-prefs-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 30;
+  z-index: 1400;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(250, 247, 240, 0.94);
+  background: rgba(37, 40, 61, 0.48);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   animation: mpPrefsIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .mp-prefs-overlay.hidden { display: none; }
@@ -4662,17 +4662,21 @@ body.dark-theme .mp-cook-btn:hover { background: #5a528a; }
   border: 2.5px solid var(--glass-border);
   box-shadow: 6px 6px 0 var(--glass-border);
   border-radius: var(--radius-lg);
-  padding: 28px 28px 22px;
+  padding: 0;
   width: 100%;
   max-width: 560px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  max-height: calc(90vh - 80px);
-  overflow-y: auto;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
 }
 
-.mp-prefs-header { display: flex; flex-direction: column; gap: 4px; }
+.mp-prefs-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 28px 28px 0;
+}
 
 .mp-prefs-title {
   font-family: var(--font-display);
@@ -4687,6 +4691,16 @@ body.dark-theme .mp-cook-btn:hover { background: #5a528a; }
   font-size: 0.85rem;
   color: var(--text-muted);
   margin: 0;
+}
+
+.mp-prefs-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  padding: 20px 28px 18px;
 }
 
 .mp-prefs-section { display: flex; flex-direction: column; gap: 0; }
@@ -4723,6 +4737,10 @@ body.dark-theme .mp-cook-btn:hover { background: #5a528a; }
   white-space: nowrap;
   transition: background 0.15s, color 0.15s, transform 0.12s, box-shadow 0.12s;
 }
+.mp-pref-chip:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
 .mp-pref-chip:hover {
   background: rgba(199, 189, 232, 0.22);
   transform: translateY(-1px);
@@ -4739,9 +4757,12 @@ body.dark-theme .mp-cook-btn:hover { background: #5a528a; }
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding-top: 16px;
+  padding: 16px 28px 22px;
   border-top: 1.5px solid rgba(37, 40, 61, 0.1);
   flex-wrap: wrap;
+  background: var(--glass-bg);
+  box-shadow: 0 -8px 18px rgba(250, 247, 240, 0.75);
+  flex-shrink: 0;
 }
 
 .mp-prefs-learn-note {
@@ -4752,6 +4773,21 @@ body.dark-theme .mp-cook-btn:hover { background: #5a528a; }
   margin: 0;
   flex: 1;
   min-width: 160px;
+}
+
+.mp-prefs-loading {
+  display: none;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin: 0;
+  flex: 1;
+  min-width: 190px;
+}
+
+.mp-prefs-panel.is-generating .mp-prefs-loading {
+  display: block;
 }
 
 .mp-prefs-actions {
@@ -4774,6 +4810,10 @@ body.dark-theme .mp-cook-btn:hover { background: #5a528a; }
   transition: var(--transition-gentle);
 }
 .mp-prefs-cancel-btn:hover { background: rgba(37, 40, 61, 0.06); }
+.mp-prefs-cancel-btn:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
 
 .mp-prefs-go-btn {
   padding: 10px 22px;
@@ -4789,14 +4829,17 @@ body.dark-theme .mp-cook-btn:hover { background: #5a528a; }
   white-space: nowrap;
   transition: var(--transition-spring);
 }
-.mp-prefs-go-btn:hover {
+.mp-prefs-go-btn:hover:not(:disabled) {
   transform: translate(-2px, -2px);
   box-shadow: 5px 5px 0 var(--glass-border);
 }
 .mp-prefs-go-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: 3px 3px 0 var(--glass-border); }
 
 @media (max-width: 580px) {
-  .mp-prefs-panel { padding: 20px 18px 18px; }
+  .mp-prefs-panel { max-height: calc(92vh - 32px); }
+  .mp-prefs-header { padding: 20px 18px 0; }
+  .mp-prefs-body { padding: 18px 18px 16px; }
+  .mp-prefs-footer { padding: 14px 18px 18px; }
   .mp-prefs-footer { flex-direction: column; align-items: flex-start; }
   .mp-prefs-actions { width: 100%; }
   .mp-prefs-go-btn { flex: 1; text-align: center; }
@@ -4812,7 +4855,7 @@ body.dark-theme .mp-cook-confirm {
 }
 body.dark-theme .mp-cook-confirm-label { color: #9d92d8; }
 body.dark-theme .mp-cook-confirm-no:hover { background: rgba(255, 255, 255, 0.06); }
-body.dark-theme .mp-prefs-overlay { background: rgba(26, 30, 46, 0.94); }
+body.dark-theme .mp-prefs-overlay { background: rgba(10, 14, 24, 0.62); }
 body.dark-theme .mp-prefs-panel { background: var(--bg-warm); border-color: rgba(160, 176, 204, 0.5); box-shadow: 6px 6px 0 rgba(160, 176, 204, 0.3); }
 body.dark-theme .mp-pref-chip { border-color: rgba(160, 176, 204, 0.5); color: #d0dbf0; }
 body.dark-theme .mp-pref-chip:hover { background: rgba(160, 176, 204, 0.12); }

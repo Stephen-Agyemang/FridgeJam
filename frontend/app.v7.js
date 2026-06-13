@@ -212,6 +212,7 @@ let appState = {
 
 // Preference state for the meal plan AI sheet (reset each time the sheet opens)
 const planPrefs = { mood: null, cuisines: new Set() };
+const MEAL_PLAN_GO_DEFAULT_TEXT = 'Create Week Schedule ✨';
 
 // --- View State Manager (Refined with Modal Overlay Support) ---
 function showState(stateName) {
@@ -2929,7 +2930,11 @@ function openPlanPrefs() {
     planPrefs.mood = null;
     planPrefs.cuisines.clear();
     document.querySelectorAll('#mp-mood-chips .mp-pref-chip, #mp-cuisine-chips .mp-pref-chip')
-        .forEach(c => c.classList.remove('mp-pref-selected'));
+        .forEach(c => {
+            c.classList.remove('mp-pref-selected');
+            c.setAttribute('aria-pressed', 'false');
+        });
+    setPlanPrefsGenerating(false);
 
     // Build the learn note based on available data
     const learnNote = document.getElementById('mp-prefs-learn-note');
@@ -2961,6 +2966,43 @@ function openPlanPrefs() {
 function closePlanPrefs() {
     const overlay = document.getElementById('mp-prefs-overlay');
     if (overlay) overlay.classList.add('hidden');
+    setPlanPrefsGenerating(false);
+}
+
+function setPlanPrefsGenerating(isGenerating) {
+    const panel = document.querySelector('.mp-prefs-panel');
+    const generateBtn = document.getElementById('mp-prefs-go');
+    const cancelBtn = document.getElementById('mp-prefs-cancel');
+    const suggestBtn = document.getElementById('meal-planner-suggest-btn');
+    const loading = document.getElementById('mp-prefs-loading');
+    const learnNote = document.getElementById('mp-prefs-learn-note');
+    const chips = document.querySelectorAll('#mp-mood-chips .mp-pref-chip, #mp-cuisine-chips .mp-pref-chip');
+
+    if (panel) {
+        panel.classList.toggle('is-generating', isGenerating);
+        panel.setAttribute('aria-busy', isGenerating ? 'true' : 'false');
+    }
+    if (generateBtn) {
+        generateBtn.disabled = isGenerating;
+        generateBtn.textContent = isGenerating ? 'Creating...' : MEAL_PLAN_GO_DEFAULT_TEXT;
+    }
+    if (cancelBtn) cancelBtn.disabled = isGenerating;
+    if (suggestBtn) {
+        suggestBtn.disabled = isGenerating;
+        suggestBtn.textContent = isGenerating ? '⏳ Planning...' : '✨ Suggest with AI';
+    }
+    if (loading) loading.hidden = !isGenerating;
+    if (learnNote) learnNote.hidden = isGenerating;
+    chips.forEach(chip => { chip.disabled = isGenerating; });
+}
+
+function normalizeMealPlanDay(day) {
+    const normalized = String(day || '').trim().toLowerCase();
+    const match = DAYS_OF_WEEK.find(d => (
+        d.toLowerCase() === normalized ||
+        d.slice(0, 3).toLowerCase() === normalized.slice(0, 3)
+    ));
+    return match || null;
 }
 
 function loadMealPlan() {
@@ -3100,9 +3142,7 @@ function closeMealDayPicker() {
 }
 
 async function suggestMealPlanWithAI() {
-    closePlanPrefs();
-    const btn = document.getElementById('meal-planner-suggest-btn');
-    if (btn) { btn.textContent = '⏳ Planning...'; btn.disabled = true; }
+    setPlanPrefsGenerating(true);
 
     const tasteProfile = buildTasteProfile();
 
@@ -3122,27 +3162,35 @@ async function suggestMealPlanWithAI() {
 
         if (!res.ok) throw new Error('API error');
         const data = await res.json();
+        let addedMeals = 0;
 
         (data.plan || []).forEach(item => {
-            if (item.day && item.meal_name) {
-                appState.mealPlan[item.day] = {
+            const day = normalizeMealPlanDay(item.day);
+            if (day && item.meal_name) {
+                appState.mealPlan[day] = {
                     meal_name:       item.meal_name,
                     description:     item.description || '',
                     cooking_time:    item.cooking_time || '',
                     key_ingredients: item.key_ingredients || [],
                     isAiStub:        true
                 };
+                addedMeals += 1;
             }
         });
 
+        if (addedMeals === 0) {
+            throw new Error('Meal plan response did not include usable days');
+        }
+
         saveMealPlan();
         renderMealPlannerGrid();
+        closePlanPrefs();
         showToast('Your AI meal plan is ready! ✨');
     } catch (err) {
         console.error('Meal plan suggestion failed:', err);
         showToast("Couldn't generate a plan right now. Try again!");
     } finally {
-        if (btn) { btn.textContent = '✨ Suggest with AI'; btn.disabled = false; }
+        setPlanPrefsGenerating(false);
     }
 }
 
@@ -3192,7 +3240,11 @@ function initMealPlannerEvents() {
             const mood = chip.getAttribute('data-mood');
             planPrefs.mood = planPrefs.mood === mood ? null : mood;
             document.querySelectorAll('#mp-mood-chips .mp-pref-chip')
-                .forEach(c => c.classList.toggle('mp-pref-selected', c.getAttribute('data-mood') === planPrefs.mood));
+                .forEach(c => {
+                    const selected = c.getAttribute('data-mood') === planPrefs.mood;
+                    c.classList.toggle('mp-pref-selected', selected);
+                    c.setAttribute('aria-pressed', selected ? 'true' : 'false');
+                });
             synth.playDialClick();
         });
     });
@@ -3204,9 +3256,11 @@ function initMealPlannerEvents() {
             if (planPrefs.cuisines.has(cuisine)) {
                 planPrefs.cuisines.delete(cuisine);
                 chip.classList.remove('mp-pref-selected');
+                chip.setAttribute('aria-pressed', 'false');
             } else {
                 planPrefs.cuisines.add(cuisine);
                 chip.classList.add('mp-pref-selected');
+                chip.setAttribute('aria-pressed', 'true');
             }
             synth.playDialClick();
         });

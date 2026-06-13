@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="style.v9.css?v=9.12">
+    <link rel="stylesheet" href="style.v9.css?v=9.14">
     
     <!-- Emoji Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍🍳</text></svg>">
@@ -658,35 +658,38 @@
                         <p class="mp-prefs-subtitle">Tell us what you're feeling — the AI does the rest</p>
                     </div>
 
-                    <div class="mp-prefs-section">
-                        <p class="mp-prefs-q-label">What vibe are you going for?</p>
-                        <div class="mp-prefs-chips" id="mp-mood-chips" role="group" aria-label="Week mood">
-                            <button class="mp-pref-chip" data-mood="light">🌿 Light &amp; Fresh</button>
-                            <button class="mp-pref-chip" data-mood="bold">🔥 Bold &amp; Hearty</button>
-                            <button class="mp-pref-chip" data-mood="quick">⚡ Quick &amp; Easy</button>
-                            <button class="mp-pref-chip" data-mood="diverse">🌍 Explore the World</button>
+                    <div class="mp-prefs-body">
+                        <div class="mp-prefs-section">
+                            <p class="mp-prefs-q-label">What vibe are you going for?</p>
+                            <div class="mp-prefs-chips" id="mp-mood-chips" role="group" aria-label="Week mood">
+                                <button type="button" class="mp-pref-chip" data-mood="light" aria-pressed="false">🌿 Light &amp; Fresh</button>
+                                <button type="button" class="mp-pref-chip" data-mood="bold" aria-pressed="false">🔥 Bold &amp; Hearty</button>
+                                <button type="button" class="mp-pref-chip" data-mood="quick" aria-pressed="false">⚡ Quick &amp; Easy</button>
+                                <button type="button" class="mp-pref-chip" data-mood="diverse" aria-pressed="false">🌍 Explore the World</button>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="mp-prefs-section">
-                        <p class="mp-prefs-q-label">Any cuisines to discover? <span class="mp-prefs-optional">Pick as many as you like</span></p>
-                        <div class="mp-prefs-chips" id="mp-cuisine-chips" role="group" aria-label="Cuisine preferences">
-                            <button class="mp-pref-chip" data-cuisine="West African">🇬🇭 West African</button>
-                            <button class="mp-pref-chip" data-cuisine="East African">🌍 East African</button>
-                            <button class="mp-pref-chip" data-cuisine="Asian">🥢 Asian</button>
-                            <button class="mp-pref-chip" data-cuisine="South Asian">🍛 South Asian</button>
-                            <button class="mp-pref-chip" data-cuisine="Mediterranean">🫒 Mediterranean</button>
-                            <button class="mp-pref-chip" data-cuisine="Latin American">🌮 Latin American</button>
-                            <button class="mp-pref-chip" data-cuisine="Middle Eastern">🧆 Middle Eastern</button>
-                            <button class="mp-pref-chip" data-cuisine="Caribbean">🌴 Caribbean</button>
+                        <div class="mp-prefs-section">
+                            <p class="mp-prefs-q-label">Any cuisines to discover? <span class="mp-prefs-optional">Pick as many as you like</span></p>
+                            <div class="mp-prefs-chips" id="mp-cuisine-chips" role="group" aria-label="Cuisine preferences">
+                                <button type="button" class="mp-pref-chip" data-cuisine="West African" aria-pressed="false">🇬🇭 West African</button>
+                                <button type="button" class="mp-pref-chip" data-cuisine="East African" aria-pressed="false">🌍 East African</button>
+                                <button type="button" class="mp-pref-chip" data-cuisine="Asian" aria-pressed="false">🥢 Asian</button>
+                                <button type="button" class="mp-pref-chip" data-cuisine="South Asian" aria-pressed="false">🍛 South Asian</button>
+                                <button type="button" class="mp-pref-chip" data-cuisine="Mediterranean" aria-pressed="false">🫒 Mediterranean</button>
+                                <button type="button" class="mp-pref-chip" data-cuisine="Latin American" aria-pressed="false">🌮 Latin American</button>
+                                <button type="button" class="mp-pref-chip" data-cuisine="Middle Eastern" aria-pressed="false">🧆 Middle Eastern</button>
+                                <button type="button" class="mp-pref-chip" data-cuisine="Caribbean" aria-pressed="false">🌴 Caribbean</button>
+                            </div>
                         </div>
                     </div>
 
                     <div class="mp-prefs-footer">
                         <p class="mp-prefs-learn-note" id="mp-prefs-learn-note"></p>
+                        <p class="mp-prefs-loading" id="mp-prefs-loading" role="status" aria-live="polite">Creating your weekly schedule...</p>
                         <div class="mp-prefs-actions">
-                            <button class="mp-prefs-cancel-btn" id="mp-prefs-cancel">Cancel</button>
-                            <button class="mp-prefs-go-btn" id="mp-prefs-go">Generate My Week ✨</button>
+                            <button type="button" class="mp-prefs-cancel-btn" id="mp-prefs-cancel">Cancel</button>
+                            <button type="button" class="mp-prefs-go-btn" id="mp-prefs-go">Create Week Schedule ✨</button>
                         </div>
                     </div>
                 </div>
@@ -730,6 +733,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Custom Script -->
-    <script src="app.v7.js?v=7.12"></script>
+    <script src="app.v7.js?v=7.14"></script>
 </body>
 </html>
