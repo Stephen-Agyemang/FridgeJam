@@ -1142,13 +1142,18 @@ function spawnItem(arena) {
     
     el.setAttribute('aria-label', `Catch ${emoji}`);
 
-    el.addEventListener('click', () => {
+    const catchItem = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (el.classList.contains('caught')) return;
         el.classList.add('caught');
         gameScore += 10 + gameStreak * 2;
         gameStreak++;
         updateGameUI();
         setTimeout(() => el.remove(), 300);
-    });
+    };
+
+    el.addEventListener('pointerdown', catchItem, { passive: false });
 
     el.addEventListener('animationend', () => {
         if (!el.classList.contains('caught')) {
@@ -3314,7 +3319,7 @@ function renderMealPlannerGrid() {
 
             col.innerHTML = `
                 <div class="mp-day-label">${day.slice(0, 3)}</div>
-                <div class="${cardClass}">
+                <div class="${cardClass}" data-day="${day}">
                     ${thumb}
                     <div class="mp-meal-info">
                         <p class="mp-meal-title">${title}</p>
@@ -3356,6 +3361,15 @@ function renderMealPlannerGrid() {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const day = btn.getAttribute('data-day');
+            const meal = appState.mealPlan[day];
+            if (meal) showCookFromPlanConfirm(meal);
+        });
+    });
+
+    grid.querySelectorAll('.mp-ai-meal-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('button')) return;
+            const day = card.getAttribute('data-day');
             const meal = appState.mealPlan[day];
             if (meal) showCookFromPlanConfirm(meal);
         });
