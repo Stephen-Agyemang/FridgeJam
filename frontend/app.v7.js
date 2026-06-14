@@ -3042,14 +3042,18 @@ function renderMealPlannerGrid() {
         col.className = 'meal-planner-day-col';
 
         if (meal) {
+            const isPlanSuggestion = meal.isAiStub || (
+                !meal.saved_image_url &&
+                (Boolean(meal.description) || (Array.isArray(meal.key_ingredients) && meal.key_ingredients.length > 0))
+            );
             const title = escapeHtml(meal.meal_name || meal.title || 'Untitled');
             const time  = meal.cooking_time ? `<span class="mp-meal-time">⏱️ ${escapeHtml(meal.cooking_time)}</span>` : '';
-            const desc  = meal.isAiStub && meal.description
+            const desc  = isPlanSuggestion && meal.description
                 ? `<p class="mp-meal-desc">${escapeHtml(meal.description)}</p>` : '';
-            const thumb = !meal.isAiStub && meal.saved_image_url
+            const thumb = !isPlanSuggestion && meal.saved_image_url
                 ? `<img class="mp-meal-thumb" src="${meal.saved_image_url}" alt="${title}" onerror="this.style.display='none'">`
-                : `<div class="mp-meal-emoji">${meal.isAiStub ? '✨' : '🍽️'}</div>`;
-            const cookBtn = meal.isAiStub
+                : `<div class="mp-meal-emoji">${isPlanSuggestion ? '✨' : '🍽️'}</div>`;
+            const cookBtn = isPlanSuggestion
                 ? `<button class="mp-cook-btn" data-day="${day}">Cook this →</button>` : '';
 
             col.innerHTML = `

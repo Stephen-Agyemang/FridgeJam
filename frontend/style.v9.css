@@ -4290,45 +4290,15 @@ body.dark-theme .scan-overlay-content {
 
 @media (max-width: 720px) {
   .meal-planner-grid {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 12px 14px 20px;
-    gap: 8px;
+    grid-template-columns: 1fr;
+    padding: 16px 18px 28px;
+    gap: 14px;
   }
 
   .meal-planner-panel {
     width: 100%;
     max-height: 96dvh;
     border-radius: var(--radius-md);
-  }
-
-  .meal-planner-day-col {
-    min-height: 140px;
-  }
-
-  .mp-meal-thumb {
-    height: 64px;
-  }
-}
-
-@media (max-width: 580px) {
-  .meal-planner-overlay {
-    align-items: stretch;
-    padding: 10px;
-  }
-
-  .meal-planner-panel {
-    max-height: calc(100dvh - 20px);
-  }
-
-  .meal-planner-hint {
-    padding: 12px 18px 0;
-    font-size: 0.82rem;
-  }
-
-  .meal-planner-grid {
-    grid-template-columns: 1fr;
-    gap: 14px;
-    padding: 16px 18px 28px;
   }
 
   .meal-planner-day-col {
@@ -4362,6 +4332,30 @@ body.dark-theme .scan-overlay-content {
   .mp-cook-btn {
     padding: 12px 14px;
     font-size: 0.86rem;
+  }
+
+  .mp-meal-thumb {
+    height: 64px;
+  }
+}
+
+@media (max-width: 580px) {
+  .meal-planner-overlay {
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .meal-planner-panel {
+    max-height: calc(100dvh - 20px);
+  }
+
+  .meal-planner-hint {
+    padding: 12px 18px 0;
+    font-size: 0.82rem;
+  }
+
+  .meal-planner-grid {
+    padding: 16px 18px 28px;
   }
 }
 
