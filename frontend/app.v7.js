@@ -704,15 +704,6 @@ let leaderboardReady = false;
 let leaderboardSubmittedScore = 0;
 
 const GAME_ITEMS = ['🍅','🥕','🧅','🥦','🍋','🥚','🧄','🌽','🍄','🥑','🍇','🥝','🍓','🫑','🥒'];
-const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyC9YBNglvG5ksbccyp-wzBDTNYds39KhKA",
-    authDomain: "fridgejam.firebaseapp.com",
-    projectId: "fridgejam",
-    storageBucket: "fridgejam.firebasestorage.app",
-    messagingSenderId: "333277718069",
-    appId: "1:333277718069:web:0e0d0158ebfc4a1528b37c",
-    measurementId: "G-YMNHH0MGEF"
-};
 
 function pickEntertain(choice) {
     entertainChoice = choice;
@@ -748,7 +739,12 @@ function initLeaderboard() {
     if (leaderboardReady || !window.firebase) return;
     try {
         if (!firebase.apps.length) {
-            firebase.initializeApp(FIREBASE_CONFIG);
+            const firebaseConfig = window.FRIDGEJAM_FIREBASE_CONFIG;
+            if (!firebaseConfig || !firebaseConfig.projectId) {
+                console.warn("[FridgeJam] Missing Firebase config. Create frontend/firebase-config.js from firebase-config.example.js.");
+                return;
+            }
+            firebase.initializeApp(firebaseConfig);
         }
         leaderboardDb = firebase.firestore();
         leaderboardReady = true;
