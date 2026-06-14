@@ -4330,7 +4330,9 @@ body.dark-theme .scan-overlay-content {
   }
 
   .mp-cook-btn {
-    padding: 12px 14px;
+    width: 100%;
+    margin-top: 8px;
+    padding: 11px 14px;
     font-size: 0.86rem;
   }
 
@@ -4607,16 +4609,19 @@ body.dark-theme .scan-overlay-content {
 .mp-picker-emoji { font-size: 1.4rem; flex-shrink: 0; }
 .mp-picker-name { font-weight: 600; }
 
-/* Cook-this button — integrated footer strip on AI stub cards.
-   The card's overflow:hidden + border-radius clips the bottom corners cleanly. */
+/* Cook-this action inside AI planner cards. Kept inside .mp-meal-info so it
+   cannot be clipped by card footer/height changes on mobile. */
 .mp-cook-btn {
-  display: block;
-  width: 100%;
-  padding: 9px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  gap: 6px;
+  width: auto;
+  padding: 8px 14px;
   background: var(--accent-lavender);
-  border: none;
-  border-top: 2px solid var(--glass-border);
-  border-radius: 0;
+  border: 2px solid var(--glass-border);
+  border-radius: 999px;
   font-family: var(--font-body);
   font-size: 0.78rem;
   font-weight: 700;
@@ -4626,12 +4631,17 @@ body.dark-theme .scan-overlay-content {
   white-space: nowrap;
   letter-spacing: 0.02em;
   transition: background 0.18s ease, letter-spacing 0.15s ease;
-  margin: 0;
+  margin-top: 6px;
   flex-shrink: 0;
+  box-shadow: 2px 2px 0 var(--glass-border);
 }
 .mp-cook-btn:hover {
   background: #b5a8dc;
   letter-spacing: 0.04em;
+}
+.mp-cook-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
 }
 body.dark-theme .mp-cook-btn { background: #4a4275; color: #e8e4f8; }
 body.dark-theme .mp-cook-btn:hover { background: #5a528a; }

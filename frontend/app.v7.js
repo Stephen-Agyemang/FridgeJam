@@ -3005,10 +3005,37 @@ function normalizeMealPlanDay(day) {
     return match || null;
 }
 
+function isMealPlanSuggestion(meal) {
+    return Boolean(meal && (
+        meal.isAiStub ||
+        (
+            !meal.saved_image_url &&
+            (
+                Boolean(meal.description) ||
+                (Array.isArray(meal.key_ingredients) && meal.key_ingredients.length > 0)
+            )
+        )
+    ));
+}
+
+function normalizeStoredMealPlan(plan) {
+    const normalizedPlan = {};
+    Object.entries(plan || {}).forEach(([day, meal]) => {
+        const normalizedDay = normalizeMealPlanDay(day) || day;
+        if (!meal || typeof meal !== 'object') return;
+        normalizedPlan[normalizedDay] = {
+            ...meal,
+            isAiStub: isMealPlanSuggestion(meal)
+        };
+    });
+    return normalizedPlan;
+}
+
 function loadMealPlan() {
     try {
         const saved = localStorage.getItem('mealPlan');
-        appState.mealPlan = saved ? JSON.parse(saved) : {};
+        appState.mealPlan = saved ? normalizeStoredMealPlan(JSON.parse(saved)) : {};
+        if (saved) saveMealPlan();
     } catch (e) {
         appState.mealPlan = {};
     }
@@ -3042,10 +3069,7 @@ function renderMealPlannerGrid() {
         col.className = 'meal-planner-day-col';
 
         if (meal) {
-            const isPlanSuggestion = meal.isAiStub || (
-                !meal.saved_image_url &&
-                (Boolean(meal.description) || (Array.isArray(meal.key_ingredients) && meal.key_ingredients.length > 0))
-            );
+            const isPlanSuggestion = isMealPlanSuggestion(meal);
             const title = escapeHtml(meal.meal_name || meal.title || 'Untitled');
             const time  = meal.cooking_time ? `<span class="mp-meal-time">⏱️ ${escapeHtml(meal.cooking_time)}</span>` : '';
             const desc  = isPlanSuggestion && meal.description
@@ -3055,16 +3079,16 @@ function renderMealPlannerGrid() {
                 : `<div class="mp-meal-emoji">${isPlanSuggestion ? '✨' : '🍽️'}</div>`;
             const cookBtn = isPlanSuggestion
                 ? `<button class="mp-cook-btn" data-day="${day}">Cook this →</button>` : '';
+            const cardClass = isPlanSuggestion ? 'mp-meal-card mp-ai-meal-card' : 'mp-meal-card';
 
             col.innerHTML = `
                 <div class="mp-day-label">${day.slice(0, 3)}</div>
-                <div class="mp-meal-card">
+                <div class="${cardClass}">
                     ${thumb}
                     <div class="mp-meal-info">
                         <p class="mp-meal-title">${title}</p>
-                        ${desc}${time}
+                        ${desc}${time}${cookBtn}
                     </div>
-                    ${cookBtn}
                     <button class="mp-remove-btn" data-day="${day}" aria-label="Remove ${day} meal">✕</button>
                 </div>
             `;
@@ -3098,7 +3122,8 @@ function renderMealPlannerGrid() {
     });
 
     grid.querySelectorAll('.mp-cook-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
             const day = btn.getAttribute('data-day');
             const meal = appState.mealPlan[day];
             if (meal) showCookFromPlanConfirm(meal);
