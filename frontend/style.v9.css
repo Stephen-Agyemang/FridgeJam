@@ -684,7 +684,7 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
 .action-btn-container {
   display: flex;
   justify-content: center;
-  margin-top: 12px;
+  margin-top: 28px;
 }
 
 .btn-primary {
@@ -2487,11 +2487,12 @@ body.dark-theme .voice-confirm-item { background: #2A2E45; }
 
   .theme-toggle-container {
     justify-content: center;
+    flex-wrap: wrap;
     gap: 8px;
     width: 100%;
     margin-bottom: 8px;
   }
-  
+
   .theme-toggle-btn {
     padding: 6px 10px;
     font-size: 0.78rem;
@@ -2613,9 +2614,22 @@ body.dark-theme .voice-confirm-item { background: #2A2E45; }
   .ingredient-input-wrapper {
     flex-direction: column;
   }
-  
+
   #btn-add-ingredient {
     padding: 14px;
+  }
+
+  .action-btn-container {
+    width: 100%;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 16px 24px;
+  }
+
+  .recipe-right-panel {
+    padding: 20px 16px;
   }
 }
 
@@ -3032,6 +3046,21 @@ body.dark-theme .voice-confirm-item { background: #2A2E45; }
   .recipe-right-panel {
     border-left: none;
     overflow-y: visible;
+    padding: 20px 16px 28px;
+  }
+
+  .recipe-action-bar {
+    padding: 0;
+  }
+
+  .btn-action-circle {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+  }
+
+  .recipe-action-right {
+    gap: 8px;
   }
   
   .recipe-photo-header {
@@ -4262,6 +4291,22 @@ body.dark-theme .scan-overlay-content {
 @media (max-width: 720px) {
   .meal-planner-grid {
     grid-template-columns: repeat(2, 1fr);
+    padding: 12px 14px 20px;
+    gap: 8px;
+  }
+
+  .meal-planner-panel {
+    width: 100%;
+    max-height: 96dvh;
+    border-radius: var(--radius-md);
+  }
+
+  .meal-planner-day-col {
+    min-height: 140px;
+  }
+
+  .mp-meal-thumb {
+    height: 64px;
   }
 }
 
@@ -4364,6 +4409,11 @@ body.dark-theme .scan-overlay-content {
   transition: opacity 0.2s;
 }
 .mp-meal-card:hover .mp-remove-btn { opacity: 1; }
+
+/* Touch devices: remove button is inaccessible at opacity 0 (no hover) — always show it */
+@media (hover: none) {
+  .mp-remove-btn { opacity: 1; }
+}
 
 .mp-empty-slot {
   border: 2.5px dashed rgba(37, 40, 61, 0.3);
