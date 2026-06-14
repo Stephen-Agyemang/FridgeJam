@@ -4310,6 +4310,61 @@ body.dark-theme .scan-overlay-content {
   }
 }
 
+@media (max-width: 580px) {
+  .meal-planner-overlay {
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .meal-planner-panel {
+    max-height: calc(100dvh - 20px);
+  }
+
+  .meal-planner-hint {
+    padding: 12px 18px 0;
+    font-size: 0.82rem;
+  }
+
+  .meal-planner-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 16px 18px 28px;
+  }
+
+  .meal-planner-day-col {
+    min-height: 0;
+  }
+
+  .mp-meal-card {
+    flex: none;
+    min-height: 0;
+  }
+
+  .mp-meal-info {
+    flex: none;
+    padding: 12px 14px;
+  }
+
+  .mp-meal-title {
+    font-size: 0.94rem;
+  }
+
+  .mp-meal-desc {
+    font-size: 0.84rem;
+    -webkit-line-clamp: 3;
+  }
+
+  .mp-meal-time {
+    margin-top: 6px;
+    font-size: 0.8rem;
+  }
+
+  .mp-cook-btn {
+    padding: 12px 14px;
+    font-size: 0.86rem;
+  }
+}
+
 .meal-planner-day-col {
   display: flex;
   flex-direction: column;

@@ -3,6 +3,7 @@
 import json
 import os
 import base64
+from functools import lru_cache
 from io import BytesIO
 from typing import Optional
 
@@ -75,13 +76,14 @@ app.add_middleware(
 
 # Primary model for text/recipe generation
 RECIPE_MODEL = "gemini-2.5-flash"
-# Lower-stakes structured tasks (meal plan, jokes). Gemini 2.0 Flash has been shut down.
-PLAN_MODEL = os.getenv("GEMINI_PLAN_MODEL", "gemini-2.5-flash")
+# Lower-stakes structured tasks (meal plan, jokes). Use a Lite model for faster structured JSON.
+PLAN_MODEL = os.getenv("GEMINI_PLAN_MODEL", "gemini-3.1-flash-lite")
 # Primary model for image generation
 IMAGE_MODEL = "imagen-4.0-generate-001"
 
+@lru_cache(maxsize=1)
 def _create_client():
-    """Create a fresh Gemini client for each request."""
+    """Create one Gemini client per process."""
     api_key = os.getenv("GEMINI_API_KEY")
     if api_key:
         return genai.Client(api_key=api_key)
@@ -90,6 +92,24 @@ def _create_client():
         vertexai=True,
         project=os.getenv("GOOGLE_CLOUD_PROJECT"),
         location=os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1"),
+    )
+
+
+def _fast_plan_generation_config(model: str) -> types.GenerateContentConfig:
+    """Tune meal-plan generation for latency over deep reasoning."""
+    thinking_config = None
+    if model.startswith("gemini-3"):
+        thinking_config = types.ThinkingConfig(thinking_level="minimal")
+    elif model.startswith("gemini-2.5-flash"):
+        thinking_config = types.ThinkingConfig(thinking_budget=0)
+
+    return types.GenerateContentConfig(
+        temperature=0.65,
+        candidate_count=1,
+        max_output_tokens=1800,
+        response_mime_type="application/json",
+        response_schema=list[MealPlanItem],
+        thinking_config=thinking_config,
     )
 
 
@@ -119,6 +139,14 @@ class MealPlanRequest(BaseModel):
     cuisine_explore: Optional[list[str]] = []           # e.g. ["West African", "Asian"]
     taste_profile: Optional[dict] = None                # mined from user's saved recipes + cook history
     dietary_restrictions: Optional[list[str]] = []     # same restrictions as recipe endpoint — safety-critical
+
+
+class MealPlanItem(BaseModel):
+    day: str
+    meal_name: str
+    description: str
+    cooking_time: str
+    key_ingredients: list[str]
 
 
 # --- Routes ---
@@ -604,10 +632,7 @@ Rules:
         response = client.models.generate_content(
             model=PLAN_MODEL,
             contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.85,
-                response_mime_type="application/json",
-            ),
+            config=_fast_plan_generation_config(PLAN_MODEL),
         )
         text = response.text.strip()
         if text.startswith("```"):
