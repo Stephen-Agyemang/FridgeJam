@@ -5089,6 +5089,54 @@ body.dark-theme .scan-overlay-content {
 body.dark-theme .mp-cook-btn { background: #4a4275; color: #e8e4f8; }
 body.dark-theme .mp-cook-btn:hover { background: #5a528a; }
 
+/* Final mobile planner sizing override.
+   This lives after the base card rules so the desktop flex:1 card sizing cannot
+   collapse mobile AI cards and make the next day overlap them. */
+@media (max-width: 720px) {
+  .meal-planner-grid {
+    grid-auto-rows: max-content;
+    align-items: start;
+  }
+
+  .meal-planner-day-col {
+    min-height: 0;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mp-empty-slot,
+  .mp-meal-card,
+  .mp-ai-meal-card {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 0;
+  }
+
+  .mp-ai-meal-card {
+    overflow: hidden;
+  }
+
+  .mp-meal-info,
+  .mp-ai-meal-card .mp-meal-info {
+    flex: 0 0 auto;
+    min-height: 0;
+  }
+
+  .mp-ai-meal-card .mp-meal-time {
+    margin-top: 2px;
+  }
+
+  .mp-cook-btn {
+    position: static;
+    align-self: stretch;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 8px;
+  }
+}
+
 /* Cook-from-plan confirmation banner (anchored to the bottom of the planner panel) */
 .mp-cook-confirm {
   position: absolute;

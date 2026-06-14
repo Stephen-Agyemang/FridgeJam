@@ -539,7 +539,7 @@ function setCookMode(mode) {
     const scanIcon = document.querySelector('#btn-scan-photo .btn-scan-icon');
     const scanText = document.querySelector('#btn-scan-photo .btn-scan-text');
     const voiceText = document.getElementById('voice-btn-text');
-    if (scanIcon) scanIcon.textContent = nextMode === 'dish' ? '🖼️' : '📸';
+    if (scanIcon) scanIcon.textContent = '📸';
     if (scanText) scanText.textContent = nextMode === 'dish' ? 'Scan Food' : 'Scan Fridge';
     if (DOM.btnScanPhoto) DOM.btnScanPhoto.setAttribute('aria-label', nextMode === 'dish' ? 'Scan food image' : 'Scan fridge photo');
     const voiceBtn = document.getElementById('btn-voice-input');
@@ -2240,7 +2240,7 @@ function initEvents() {
         if (!modal || !video) return;
 
         if (title) title.textContent = appState.cookMode === 'dish' ? 'Scan Food Image' : 'Scan Your Fridge';
-        if (captureBtn) captureBtn.textContent = appState.cookMode === 'dish' ? '🖼️ Capture Food' : '📸 Capture';
+        if (captureBtn) captureBtn.textContent = appState.cookMode === 'dish' ? '📸 Capture Food' : '📸 Capture';
         modal.classList.remove('hidden');
 
         try {
@@ -2291,7 +2291,7 @@ function initEvents() {
         scanOverlay.innerHTML = `
             <div class="scan-overlay-content">
                 <div class="scanner-laser"></div>
-                <div class="scan-spinner">${isDishScan ? '🖼️' : '📸'}</div>
+                <div class="scan-spinner">📸</div>
                 <h3 style="font-family:var(--font-display);font-weight:700;margin-bottom:8px;">${isDishScan ? 'Reading food image...' : 'Scanning ingredients...'}</h3>
                 <p style="font-family:var(--font-body);font-size:0.9rem;color:var(--text-secondary);">${isDishScan ? 'Gemini is figuring out what this dish looks like and how to recreate it...' : 'Gemini is carefully identifying everything it can see...'}</p>
             </div>`;
