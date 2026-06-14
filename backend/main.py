@@ -116,7 +116,7 @@ def _fast_plan_generation_config(model: str) -> types.GenerateContentConfig:
 # --- Models ---
 
 class RecipeRequest(BaseModel):
-    ingredients: str
+    ingredients: str = ""
     personality: str  # "budget", "grandma", "chef", or "chloe"
     dietary_restrictions: Optional[list[str]] = []
     expiring_soon: Optional[list[str]] = []
@@ -158,10 +158,11 @@ async def generate_recipe(request: Request, body: RecipeRequest):
     
     # Strip triple-quotes to prevent prompt injection via the ingredients field
     ingredients_text = body.ingredients.strip().replace('"""', '').replace("'''", '')
-    if len(ingredients_text) < 2:
+    recipe_hint_text = body.recipe_hint.strip().replace('"""', '').replace("'''", '') if body.recipe_hint else ""
+    if len(ingredients_text) < 2 and len(recipe_hint_text) < 2:
         raise HTTPException(
             status_code=400,
-            detail="Please list at least one ingredient so the chef can work their magic!",
+            detail="Please list ingredients or name the dish you want to cook!",
         )
 
     if len(ingredients_text) > 2000:
@@ -256,28 +257,33 @@ async def generate_recipe(request: Request, body: RecipeRequest):
 
     # Build recipe hint block — used when user clicks "Cook this" on a meal planner AI stub
     hint_block = ""
-    if body.recipe_hint and body.recipe_hint.strip():
-        safe_hint = _sanitize_line(
-            body.recipe_hint.replace('"""', '').replace("'''", ''), max_len=120
-        )
+    if recipe_hint_text:
+        safe_hint = _sanitize_line(recipe_hint_text, max_len=120)
         hint_block = (
             f"\n\nDISH TARGET — USER'S CHOSEN MEAL:\n"
             f"The user specifically wants to make: \"{safe_hint}\".\n"
-            f"Build the recipe around this dish. Use the provided fridge ingredients as the base "
-            f"and fill in any remaining standard ingredients needed to complete it."
+            f"Build the recipe around this dish. If fridge ingredients are provided, use them as the base. "
+            f"Fill in any remaining standard ingredients needed to complete it, and clearly mark those as pantry/store items."
         )
+
+    user_ingredients_section = ingredients_text if ingredients_text else "No specific fridge ingredients provided."
+    recipe_task = (
+        "Create a complete, practical recipe for the user's chosen dish. Return ONLY the raw JSON output matching the schema."
+        if recipe_hint_text and not ingredients_text
+        else "Create a single incredible dish that highlights these ingredients. Return ONLY the raw JSON output matching the schema."
+    )
 
     # Construct complete LLM prompt
     full_prompt = f"""
 {SYSTEM_PROMPT}
 
 USER FRIDGE INGREDIENTS:
-\"\"\"{ingredients_text}\"\"\"{dietary_block}{expiry_block}{hint_block}
+\"\"\"{user_ingredients_section}\"\"\"{dietary_block}{expiry_block}{hint_block}
 
 PERSONALITY ASSIGNMENT:
 {personality_instruction}
 
-Create a single incredible dish that highlights these ingredients. Return ONLY the raw JSON output matching the schema.
+{recipe_task}
 """
 
     try:

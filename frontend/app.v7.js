@@ -133,6 +133,11 @@ const DOM = {
     stateRecipe: document.getElementById('state-recipe'),
     
     ingredientsInput: document.getElementById('ingredients-input'),
+    ingredientsInputLabel: document.getElementById('ingredients-input-label'),
+    dishTargetGroup: document.getElementById('dish-target-group'),
+    dishTargetInput: document.getElementById('dish-target-input'),
+    cookModeHelper: document.getElementById('cook-mode-helper'),
+    cookModeButtons: document.querySelectorAll('.cook-mode-option'),
     charCount: document.getElementById('char-count'),
     ingredientsPool: document.getElementById('ingredients-pool'),
     btnCook: document.getElementById('btn-cook'),
@@ -201,6 +206,8 @@ const DOM = {
 // Global App State
 let appState = {
     ingredients: [],
+    cookMode: 'leftovers',
+    dishTarget: '',
     selectedPersonality: 'grandma', // default selected
     currentRecipe: null,
     favorites: [],  // loaded dynamically from localStorage on boot
@@ -294,6 +301,7 @@ function getEmojiForIngredient(ing) {
 function updateInputTextareaAndSync() {
     const rawVal = DOM.ingredientsInput.value;
     const len = rawVal.length;
+    const dishLen = DOM.dishTargetInput ? DOM.dishTargetInput.value.trim().length : 0;
     
     // 1. Update character count text and class
     if (DOM.charCount) {
@@ -304,7 +312,7 @@ function updateInputTextareaAndSync() {
     
     // 2. Enable/disable cook button (disabled below 5 characters)
     if (DOM.btnCook) {
-        DOM.btnCook.disabled = len < 5;
+        DOM.btnCook.disabled = appState.cookMode === 'dish' ? dishLen < 2 : len < 5;
     }
     
     // 3. Parse ingredients from text
@@ -414,7 +422,10 @@ function renderIngredientsTags() {
     const jarEmpty = document.getElementById('leftovers-jar-empty');
 
     if (appState.ingredients.length === 0) {
-        DOM.ingredientsPool.innerHTML = '<span class="placeholder-tag">Your cooking counter is empty...</span>';
+        const placeholder = appState.cookMode === 'dish'
+            ? 'Optional: add anything you already have for this dish...'
+            : 'Your cooking counter is empty...';
+        DOM.ingredientsPool.innerHTML = `<span class="placeholder-tag">${placeholder}</span>`;
         if (jarEmpty) jarEmpty.classList.remove('hidden');
         return;
     }
@@ -469,6 +480,51 @@ function removeIngredient(index) {
     const removed = appState.ingredients.splice(index, 1)[0];
     appState.expiringIngredients.delete(removed);
     DOM.ingredientsInput.value = appState.ingredients.join(', ');
+    updateInputTextareaAndSync();
+}
+
+function setCookMode(mode) {
+    const nextMode = mode === 'dish' ? 'dish' : 'leftovers';
+    appState.cookMode = nextMode;
+
+    DOM.cookModeButtons.forEach(btn => {
+        const isActive = btn.dataset.cookMode === nextMode;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    if (DOM.dishTargetGroup) {
+        DOM.dishTargetGroup.classList.toggle('hidden', nextMode !== 'dish');
+    }
+
+    if (DOM.ingredientsInputLabel) {
+        DOM.ingredientsInputLabel.textContent = nextMode === 'dish'
+            ? 'Anything you already have?'
+            : "What's in your fridge?";
+    }
+
+    const scanActions = document.querySelector('.scan-actions');
+    if (scanActions) {
+        scanActions.classList.toggle('dish-mode-hidden', nextMode === 'dish');
+    }
+
+    if (DOM.ingredientsInput) {
+        DOM.ingredientsInput.placeholder = nextMode === 'dish'
+            ? 'Optional: eggs, spinach, half an onion...'
+            : 'I have two eggs, some spinach, and half an onion...';
+    }
+
+    if (DOM.cookModeHelper) {
+        DOM.cookModeHelper.textContent = nextMode === 'dish'
+            ? 'Name the food you want, then add anything already in your kitchen.'
+            : 'Tell us what ingredients are sitting in your fridge or pantry right now.';
+    }
+
+    if (DOM.btnCook) {
+        const label = DOM.btnCook.querySelector('span:first-child');
+        if (label) label.textContent = nextMode === 'dish' ? 'Cook This Dish' : "Let's Cook";
+    }
+
     updateInputTextareaAndSync();
 }
 
@@ -643,8 +699,20 @@ let pendingRecipeData = null; // store finished recipe until user clicks "See My
 let jokesViewedCount = 0;
 let gameStartTime = 0;
 let gameSpawnTimeout = null;
+let leaderboardDb = null;
+let leaderboardReady = false;
+let leaderboardSubmittedScore = 0;
 
 const GAME_ITEMS = ['🍅','🥕','🧅','🥦','🍋','🥚','🧄','🌽','🍄','🥑','🍇','🥝','🍓','🫑','🥒'];
+const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyC9YBNglvG5ksbccyp-wzBDTNYds39KhKA",
+    authDomain: "fridgejam.firebaseapp.com",
+    projectId: "fridgejam",
+    storageBucket: "fridgejam.firebasestorage.app",
+    messagingSenderId: "333277718069",
+    appId: "1:333277718069:web:0e0d0158ebfc4a1528b37c",
+    measurementId: "G-YMNHH0MGEF"
+};
 
 function pickEntertain(choice) {
     entertainChoice = choice;
@@ -674,6 +742,128 @@ function resetEntertainPicker() {
     if (jokesPanel) jokesPanel.classList.add('hidden');
     if (gamePanel)  gamePanel.classList.add('hidden');
     if (picker)     picker.classList.remove('hidden');
+}
+
+function initLeaderboard() {
+    if (leaderboardReady || !window.firebase) return;
+    try {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(FIREBASE_CONFIG);
+        }
+        leaderboardDb = firebase.firestore();
+        leaderboardReady = true;
+    } catch (err) {
+        console.warn("[FridgeJam] Leaderboard unavailable:", err);
+        leaderboardReady = false;
+    }
+}
+
+function renderLeaderboardRows(scores) {
+    const list = document.getElementById('game-leaderboard-list');
+    if (!list) return;
+
+    if (!scores || scores.length === 0) {
+        list.innerHTML = '<li class="leaderboard-muted">No scores yet. Be the first to catch something.</li>';
+        return;
+    }
+
+    list.innerHTML = scores.map((entry, index) => `
+        <li>
+            <span class="leaderboard-rank">#${index + 1}</span>
+            <span class="leaderboard-name">${escapeHtml(entry.nickname || 'Chef')}</span>
+            <strong>${Number(entry.score || 0)}</strong>
+        </li>
+    `).join('');
+}
+
+async function loadLeaderboard() {
+    initLeaderboard();
+    const list = document.getElementById('game-leaderboard-list');
+    if (list) list.innerHTML = '<li class="leaderboard-muted">Loading top catches...</li>';
+
+    if (!leaderboardReady || !leaderboardDb) {
+        if (list) list.innerHTML = '<li class="leaderboard-muted">Leaderboard needs Firestore rules before it can load.</li>';
+        return;
+    }
+
+    try {
+        const snapshot = await leaderboardDb
+            .collection('game_scores')
+            .orderBy('score', 'desc')
+            .limit(5)
+            .get();
+        const scores = snapshot.docs.map(doc => doc.data());
+        renderLeaderboardRows(scores);
+    } catch (err) {
+        console.warn("[FridgeJam] Could not load leaderboard:", err);
+        if (list) list.innerHTML = '<li class="leaderboard-muted">Leaderboard is locked until rules are published.</li>';
+    }
+}
+
+function updateLeaderboardSubmitState() {
+    const form = document.getElementById('leaderboard-submit-form');
+    const input = document.getElementById('leaderboard-name-input');
+    if (!form) return;
+
+    const canSubmit = gameScore > 0 && leaderboardSubmittedScore === 0;
+    form.classList.toggle('hidden', !canSubmit);
+
+    if (input && canSubmit && !input.value.trim()) {
+        input.value = localStorage.getItem('fridgejamLeaderboardName') || '';
+    }
+}
+
+function sanitizeNickname(value) {
+    return value
+        .trim()
+        .replace(/[^\w\s.-]/g, '')
+        .replace(/\s+/g, ' ')
+        .slice(0, 18);
+}
+
+async function submitLeaderboardScore(e) {
+    e.preventDefault();
+    initLeaderboard();
+
+    if (!leaderboardReady || !leaderboardDb) {
+        showToast("Leaderboard is not ready yet. Check Firestore rules.");
+        return;
+    }
+
+    if (gameScore <= 0) {
+        showToast("Catch at least one ingredient first!");
+        return;
+    }
+
+    const input = document.getElementById('leaderboard-name-input');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const nickname = sanitizeNickname(input ? input.value : '');
+
+    if (nickname.length < 2) {
+        showToast("Use at least 2 characters for your nickname.");
+        return;
+    }
+
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+        await leaderboardDb.collection('game_scores').add({
+            nickname,
+            score: gameScore,
+            gameType: 'catch-ingredients',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        leaderboardSubmittedScore = gameScore;
+        localStorage.setItem('fridgejamLeaderboardName', nickname);
+        updateLeaderboardSubmitState();
+        await loadLeaderboard();
+        showToast("Score saved to the leaderboard! 🏆");
+    } catch (err) {
+        console.warn("[FridgeJam] Could not save leaderboard score:", err);
+        showToast("Score could not be saved yet. Check Firestore rules.");
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
+    }
 }
 
 function loadJoke(index) {
@@ -911,9 +1101,11 @@ function startMiniGame() {
     const arena = document.getElementById('game-arena');
     if (!arena) return;
     gameScore = 0; gameStreak = 0;
+    leaderboardSubmittedScore = 0;
     gameStartTime = Date.now();
     updateGameUI();
     arena.innerHTML = '';
+    loadLeaderboard();
     
     // Start dynamic spawning loop
     gameSpawnLoop();
@@ -993,6 +1185,8 @@ function updateGameUI() {
         }
         diffEl.textContent = levelStr;
     }
+
+    updateLeaderboardSubmitState();
 }
 
 function resetEntertainZone() {
@@ -1105,13 +1299,25 @@ function showToast(message, persist = false) {
 
 // --- API Cooking Trigger ---
 async function startCooking() {
-    if (appState.ingredients.length === 0) {
+    const isPlannerCook = Boolean(appState.planRecipeHint);
+    const isDishMode = appState.cookMode === 'dish' && !isPlannerCook;
+    const dishTarget = DOM.dishTargetInput ? DOM.dishTargetInput.value.trim() : '';
+    appState.dishTarget = dishTarget;
+
+    if (!isDishMode && appState.ingredients.length === 0) {
         showToast("Add some ingredients first before lighting the stove!");
         return;
     }
 
+    if (isDishMode && dishTarget.length < 2) {
+        showToast("Tell the chef what dish you want to cook first!");
+        return;
+    }
+
     // Log this session's ingredients so buildTasteProfile() can learn from it
-    trackIngredientUsage(appState.ingredients);
+    if (appState.ingredients.length > 0) {
+        trackIngredientUsage(appState.ingredients);
+    }
 
     // 1. Synthesize burner click sound
     synth.playDialClick();
@@ -1119,7 +1325,7 @@ async function startCooking() {
     // 2. Trigger physical leftovers jar shake animation & slip scatter!
     const jarContainer = document.getElementById('leftovers-jar-container');
     const jarContents = document.getElementById('leftovers-jar-contents');
-    if (jarContainer) {
+    if (jarContainer && appState.ingredients.length > 0) {
         jarContainer.classList.add('shaking');
         if (jarContents) {
             const slips = jarContents.querySelectorAll('.jar-slip');
@@ -1148,6 +1354,7 @@ async function startCooking() {
     startCookingAnimation(appState.selectedPersonality);
     
     const ingredientsPayload = appState.ingredients.join(', ');
+    const recipeHint = appState.planRecipeHint || (isDishMode ? dishTarget : undefined);
     
     try {
         // Step 1: Generate Recipe JSON from Gemini
@@ -1157,7 +1364,7 @@ async function startCooking() {
             personality: appState.selectedPersonality,
             dietary_restrictions: appState.dietaryRestrictions,
             expiring_soon: [...appState.expiringIngredients],
-            recipe_hint: appState.planRecipeHint || undefined
+            recipe_hint: recipeHint || undefined
         });
         appState.planRecipeHint = null;
         let recipeResponse = null;
@@ -1946,6 +2153,21 @@ function initEvents() {
         DOM.ingredientsInput.addEventListener('input', updateInputTextareaAndSync);
     }
 
+    if (DOM.dishTargetInput) {
+        DOM.dishTargetInput.addEventListener('input', () => {
+            appState.dishTarget = DOM.dishTargetInput.value.trim();
+            updateInputTextareaAndSync();
+        });
+    }
+
+    DOM.cookModeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (synth && typeof synth.playDialClick === 'function') synth.playDialClick();
+            setCookMode(btn.dataset.cookMode);
+        });
+    });
+    setCookMode(appState.cookMode);
+
     // ── Fridge Photo Scanner ──────────────────────────────────────────────────
     // Opens live camera modal (with torch on supported devices), falls back to
     // file upload. After Gemini scans the image, shows a review step so the
@@ -2161,6 +2383,16 @@ function initEvents() {
         DOM.btnCook.addEventListener('click', startCooking);
     }
 
+    const leaderboardForm = document.getElementById('leaderboard-submit-form');
+    if (leaderboardForm) {
+        leaderboardForm.addEventListener('submit', submitLeaderboardScore);
+    }
+
+    const leaderboardRefreshBtn = document.getElementById('leaderboard-refresh-btn');
+    if (leaderboardRefreshBtn) {
+        leaderboardRefreshBtn.addEventListener('click', loadLeaderboard);
+    }
+
     // Back / Close Button click
     if (DOM.recipeBackBtn) {
         DOM.recipeBackBtn.addEventListener('click', () => showState('input'));
@@ -2227,7 +2459,10 @@ function initEvents() {
             appState.ingredients = [];
             appState.expiringIngredients.clear();
             appState.currentRecipe = null;
+            appState.planRecipeHint = null;
+            appState.dishTarget = '';
             DOM.ingredientsInput.value = '';
+            if (DOM.dishTargetInput) DOM.dishTargetInput.value = '';
             updateInputTextareaAndSync();
             showState('input');
         });

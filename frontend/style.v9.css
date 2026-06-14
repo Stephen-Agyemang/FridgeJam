@@ -392,6 +392,79 @@ body.dark-theme {
   margin-bottom: 10px;
 }
 
+.cook-mode-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 5px;
+  margin-bottom: 18px;
+  background: rgba(199, 189, 232, 0.18);
+  border: 2px solid var(--glass-border);
+  border-radius: 22px;
+  box-shadow: inset 0 0 0 1px rgba(37, 40, 61, 0.04);
+}
+
+.cook-mode-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 17px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+}
+
+.cook-mode-option:hover {
+  transform: translateY(-1px);
+}
+
+.cook-mode-option.active {
+  background: #C7BDE8;
+  color: #25283D;
+  box-shadow: 0 4px 0 #25283D;
+}
+
+.cook-mode-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.dish-target-group {
+  margin-bottom: 14px;
+}
+
+.dish-target-input {
+  width: 100%;
+  min-height: 54px;
+  padding: 13px 18px;
+  background: var(--input-bg);
+  border: 2px solid var(--input-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 0 var(--input-border);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  transition: var(--transition-gentle);
+}
+
+.dish-target-input:focus {
+  box-shadow: 0 6px 0 var(--input-border);
+}
+
+.dish-mode-hidden {
+  display: none !important;
+}
+
 .ingredient-input-wrapper {
   display: flex;
   flex-direction: column;
@@ -1064,6 +1137,130 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
 
 .game-item.caught {
   animation: item-catch 0.3s ease forwards;
+}
+
+.game-leaderboard {
+  border-top: 2px solid #E8E3D8;
+  padding: 10px 12px 12px;
+  background: rgba(250, 247, 240, 0.72);
+}
+
+[data-theme="dark"] .game-leaderboard {
+  background: rgba(15, 19, 34, 0.72);
+  border-color: #2D3150;
+}
+
+.game-leaderboard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.game-leaderboard-head button {
+  border: 2px solid var(--glass-border);
+  border-radius: 999px;
+  background: var(--glass-bg);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.game-leaderboard-list {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.game-leaderboard-list li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 5px 8px;
+  border: 1.5px solid rgba(37, 40, 61, 0.18);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.game-leaderboard-list .leaderboard-muted {
+  display: block;
+  color: var(--text-muted);
+  font-style: italic;
+  font-weight: 600;
+  text-align: center;
+}
+
+.leaderboard-rank {
+  color: var(--accent-copper);
+}
+
+.leaderboard-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboard-submit {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.leaderboard-submit label {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.leaderboard-submit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.leaderboard-submit-row input {
+  min-width: 0;
+  border: 2px solid var(--input-border);
+  border-radius: 999px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 9px 12px;
+}
+
+.leaderboard-submit-row button {
+  border: 2px solid #25283D;
+  border-radius: 999px;
+  background: #C7BDE8;
+  color: #25283D;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 9px 14px;
+  cursor: pointer;
+}
+
+.leaderboard-submit-row button:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 
 @keyframes item-fall {
@@ -2515,6 +2712,17 @@ body.dark-theme .voice-confirm-item { background: #2A2E45; }
     gap: 10px;
     width: 100%;
   }
+
+  .cook-mode-toggle {
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .cook-mode-option {
+    min-height: 44px;
+    padding: 9px 8px;
+    font-size: 0.82rem;
+  }
   
   .chef-buttons {
     gap: 10px; /* tight snug gaps preventing card stretch */
@@ -2613,6 +2821,11 @@ body.dark-theme .voice-confirm-item { background: #2A2E45; }
   
   .ingredient-input-wrapper {
     flex-direction: column;
+  }
+
+  .dish-target-input {
+    min-height: 50px;
+    font-size: 0.92rem;
   }
 
   #btn-add-ingredient {

@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="style.v9.css?v=9.21">
+    <link rel="stylesheet" href="style.v9.css?v=9.23">
     
     <!-- Emoji Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍🍳</text></svg>">
@@ -79,12 +79,28 @@
                     <div class="control-panel">
                         <div class="card-glass-header">
                             <h2>Stock Your Counter</h2>
-                            <p>Tell us what ingredients are sitting in your fridge or pantry right now.</p>
+                            <p id="cook-mode-helper">Tell us what ingredients are sitting in your fridge or pantry right now.</p>
                         </div>
                         
                         <div class="form-group">
+                            <div class="cook-mode-toggle" role="tablist" aria-label="Choose cooking mode">
+                                <button type="button" class="cook-mode-option active" id="cook-mode-leftovers" data-cook-mode="leftovers" role="tab" aria-selected="true">
+                                    <span class="cook-mode-icon">🫙</span>
+                                    <span>Use leftovers</span>
+                                </button>
+                                <button type="button" class="cook-mode-option" id="cook-mode-dish" data-cook-mode="dish" role="tab" aria-selected="false">
+                                    <span class="cook-mode-icon">🍽️</span>
+                                    <span>Cook a dish</span>
+                                </button>
+                            </div>
+
+                            <div class="dish-target-group hidden" id="dish-target-group">
+                                <label for="dish-target-input">What do you want to cook?</label>
+                                <input id="dish-target-input" class="dish-target-input" maxlength="120" placeholder="Jollof rice, shakshuka, chicken alfredo..." aria-label="What dish do you want to cook?">
+                            </div>
+
                             <div class="ingredients-label-row">
-                                <label for="ingredients-input" style="margin-bottom: 0; display: inline-block;">What's in your fridge?</label>
+                                <label for="ingredients-input" id="ingredients-input-label" style="margin-bottom: 0; display: inline-block;">What's in your fridge?</label>
                                 <div class="scan-actions">
                                     <button type="button" id="btn-scan-photo" class="btn-scan-photo" aria-label="Scan Fridge Photo">
                                         <span class="btn-scan-icon">📸</span>
@@ -280,6 +296,22 @@
                                 <span>Level: <strong id="game-difficulty">Cozy</strong></span>
                             </div>
                             <div class="game-arena" id="game-arena"></div>
+                            <div class="game-leaderboard" id="game-leaderboard">
+                                <div class="game-leaderboard-head">
+                                    <span>🏆 Top catches</span>
+                                    <button type="button" id="leaderboard-refresh-btn">Refresh</button>
+                                </div>
+                                <ol class="game-leaderboard-list" id="game-leaderboard-list">
+                                    <li class="leaderboard-muted">Play a round to wake up the board.</li>
+                                </ol>
+                                <form class="leaderboard-submit hidden" id="leaderboard-submit-form">
+                                    <label for="leaderboard-name-input">Save your score</label>
+                                    <div class="leaderboard-submit-row">
+                                        <input id="leaderboard-name-input" maxlength="18" placeholder="Nickname" autocomplete="nickname">
+                                        <button type="submit">Submit</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
 
@@ -731,8 +763,10 @@
 
     <!-- PDF Generation Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 
     <!-- Custom Script -->
-    <script src="app.v7.js?v=7.16"></script>
+    <script src="app.v7.js?v=7.18"></script>
 </body>
 </html>
