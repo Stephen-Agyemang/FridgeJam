@@ -45,6 +45,19 @@ def _sanitize_line(value: str, max_len: int = 120) -> str:
     return value.replace("\n", " ").replace("\r", " ").strip()[:max_len]
 
 
+def _clean_list_values(values, limit: int, max_item_len: int = 50) -> list[str]:
+    """Sanitize a short list of user/model-provided strings."""
+    if not isinstance(values, list):
+        return []
+    cleaned = []
+    for item in values[:limit]:
+        if isinstance(item, str):
+            safe = _sanitize_line(item, max_len=max_item_len)
+            if safe:
+                cleaned.append(safe)
+    return cleaned
+
+
 limiter = Limiter(key_func=_get_client_ip)
 app = FastAPI(title="FridgeJam", docs_url=None, redoc_url=None)
 app.state.limiter = limiter
@@ -130,6 +143,14 @@ class ImageRequest(BaseModel):
 class JokeEvaluationRequest(BaseModel):
     joke: str
     personality: str
+
+
+class FoodImageAnalysis(BaseModel):
+    detected_dish: str
+    confidence: str
+    visible_ingredients: list[str]
+    style_notes: str
+    recipe_hint: str
 
 
 class MealPlanRequest(BaseModel):
@@ -258,7 +279,7 @@ async def generate_recipe(request: Request, body: RecipeRequest):
     # Build recipe hint block — used when user clicks "Cook this" on a meal planner AI stub
     hint_block = ""
     if recipe_hint_text:
-        safe_hint = _sanitize_line(recipe_hint_text, max_len=120)
+        safe_hint = _sanitize_line(recipe_hint_text, max_len=420)
         hint_block = (
             f"\n\nDISH TARGET — USER'S CHOSEN MEAL:\n"
             f"The user specifically wants to make: \"{safe_hint}\".\n"
@@ -394,6 +415,85 @@ async def scan_fridge(request: Request, file: UploadFile = File(...)):
         raise HTTPException(
             status_code=500,
             detail="The scanner lens seems a bit foggy! Try checking the lighting and uploading again."
+        )
+
+
+@app.post("/api/analyze-food-image")
+@limiter.limit("10/minute")
+async def analyze_food_image(request: Request, file: UploadFile = File(...)):
+    """Analyze a finished food image so the recipe generator can make something similar."""
+    try:
+        image_bytes = await file.read()
+        if not image_bytes:
+            raise HTTPException(status_code=400, detail="Empty image file uploaded.")
+
+        MAX_FILE_SIZE = 10 * 1024 * 1024
+        if len(image_bytes) > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=400,
+                detail="The uploaded image is too large! Please upload a photo smaller than 10MB.",
+            )
+
+        from PIL import Image, UnidentifiedImageError
+        from io import BytesIO
+
+        Image.MAX_IMAGE_PIXELS = 20_000_000
+
+        try:
+            image = Image.open(BytesIO(image_bytes))
+        except UnidentifiedImageError:
+            raise HTTPException(
+                status_code=400,
+                detail="The uploaded file does not appear to be a valid image format. Please upload a JPEG or PNG photo.",
+            )
+
+        client = _create_client()
+        prompt = """
+You are a culinary image analyst. The user uploaded a picture of finished food they want to cook or imitate.
+
+Infer the most likely dish or dish family, visible ingredients, cuisine/style clues, and cooking method clues.
+Do not claim certainty if the image is ambiguous.
+Return ONLY JSON matching this schema:
+{
+  "detected_dish": "short dish name or best guess",
+  "confidence": "high|medium|low",
+  "visible_ingredients": ["ingredient1", "ingredient2", "ingredient3"],
+  "style_notes": "one concise sentence about texture, sauce, plating, cuisine, and cooking style",
+  "recipe_hint": "concise prompt the recipe generator can use to make a similar dish"
+}
+
+Rules:
+- visible_ingredients must contain 0 to 10 common ingredient names, not brands.
+- If this does not look like food, use detected_dish: "", confidence: "low", visible_ingredients: [], and explain briefly in style_notes.
+- Keep recipe_hint under 280 characters.
+"""
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[image, prompt],
+            config=types.GenerateContentConfig(
+                temperature=0.35,
+                response_mime_type="application/json",
+                response_schema=FoodImageAnalysis,
+            ),
+        )
+
+        text = response.text.strip() if response.text else "{}"
+        data = json.loads(text)
+        data["visible_ingredients"] = _clean_list_values(data.get("visible_ingredients", []), limit=10)
+        data["detected_dish"] = _sanitize_line(data.get("detected_dish", ""), max_len=80)
+        data["confidence"] = _sanitize_line(data.get("confidence", "low"), max_len=12).lower()
+        data["style_notes"] = _sanitize_line(data.get("style_notes", ""), max_len=220)
+        data["recipe_hint"] = _sanitize_line(data.get("recipe_hint", ""), max_len=300)
+        return data
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error analyzing food photo: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="The food scanner could not read that image clearly. Try a brighter or closer photo.",
         )
 
 

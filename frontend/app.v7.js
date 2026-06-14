@@ -208,6 +208,7 @@ let appState = {
     ingredients: [],
     cookMode: 'leftovers',
     dishTarget: '',
+    dishImageHint: '',
     selectedPersonality: 'grandma', // default selected
     currentRecipe: null,
     favorites: [],  // loaded dynamically from localStorage on boot
@@ -483,9 +484,41 @@ function removeIngredient(index) {
     updateInputTextareaAndSync();
 }
 
+function commitIngredientsToList(ingredients, source) {
+    let added = 0;
+    let idx = 0;
+    const sourceLabel = source === 'scan' ? 'scan' : source === 'food image' ? 'food image' : 'voice';
+
+    function addNext() {
+        if (idx >= ingredients.length) {
+            if (added > 0) {
+                showToast(`Added ${added} ingredient${added > 1 ? 's' : ''} from ${sourceLabel}`);
+            }
+            return;
+        }
+
+        const ing = cleanIngredientText(String(ingredients[idx] || ''));
+        if (ing && !appState.ingredients.some(e => e.toLowerCase() === ing.toLowerCase())) {
+            const cur = DOM.ingredientsInput.value.trim();
+            DOM.ingredientsInput.value = cur === '' || cur.endsWith(',') ? cur + ing : `${cur}, ${ing}`;
+            updateInputTextareaAndSync();
+            if (synth && typeof synth.playBubble === 'function') synth.playBubble();
+            added++;
+        }
+
+        idx++;
+        setTimeout(addNext, 250);
+    }
+
+    addNext();
+}
+
 function setCookMode(mode) {
     const nextMode = mode === 'dish' ? 'dish' : 'leftovers';
     appState.cookMode = nextMode;
+    if (nextMode !== 'dish') {
+        appState.dishImageHint = '';
+    }
 
     DOM.cookModeButtons.forEach(btn => {
         const isActive = btn.dataset.cookMode === nextMode;
@@ -503,10 +536,15 @@ function setCookMode(mode) {
             : "What's in your fridge?";
     }
 
-    const scanActions = document.querySelector('.scan-actions');
-    if (scanActions) {
-        scanActions.classList.toggle('dish-mode-hidden', nextMode === 'dish');
-    }
+    const scanIcon = document.querySelector('#btn-scan-photo .btn-scan-icon');
+    const scanText = document.querySelector('#btn-scan-photo .btn-scan-text');
+    const voiceText = document.getElementById('voice-btn-text');
+    if (scanIcon) scanIcon.textContent = nextMode === 'dish' ? '🖼️' : '📸';
+    if (scanText) scanText.textContent = nextMode === 'dish' ? 'Scan Food' : 'Scan Fridge';
+    if (DOM.btnScanPhoto) DOM.btnScanPhoto.setAttribute('aria-label', nextMode === 'dish' ? 'Scan food image' : 'Scan fridge photo');
+    const voiceBtn = document.getElementById('btn-voice-input');
+    if (voiceBtn) voiceBtn.setAttribute('aria-label', nextMode === 'dish' ? 'Speak dish name' : 'Speak ingredients');
+    if (voiceText && !isListening) voiceText.textContent = nextMode === 'dish' ? 'Say dish' : 'Speak';
 
     if (DOM.ingredientsInput) {
         DOM.ingredientsInput.placeholder = nextMode === 'dish'
@@ -1355,7 +1393,12 @@ async function startCooking() {
     startCookingAnimation(appState.selectedPersonality);
     
     const ingredientsPayload = appState.ingredients.join(', ');
-    const recipeHint = appState.planRecipeHint || (isDishMode ? dishTarget : undefined);
+    const dishModeHint = isDishMode
+        ? [dishTarget, appState.dishImageHint ? `Image notes: ${appState.dishImageHint}` : '']
+            .filter(Boolean)
+            .join('. ')
+        : undefined;
+    const recipeHint = appState.planRecipeHint || dishModeHint;
     
     try {
         // Step 1: Generate Recipe JSON from Gemini
@@ -2157,6 +2200,7 @@ function initEvents() {
     if (DOM.dishTargetInput) {
         DOM.dishTargetInput.addEventListener('input', () => {
             appState.dishTarget = DOM.dishTargetInput.value.trim();
+            appState.dishImageHint = '';
             updateInputTextareaAndSync();
         });
     }
@@ -2191,8 +2235,12 @@ function initEvents() {
         const modal = document.getElementById('camera-modal');
         const video = document.getElementById('camera-preview');
         const torchBtn = document.getElementById('camera-torch-btn');
+        const title = document.querySelector('.camera-modal-title');
+        const captureBtn = document.getElementById('camera-capture-btn');
         if (!modal || !video) return;
 
+        if (title) title.textContent = appState.cookMode === 'dish' ? 'Scan Food Image' : 'Scan Your Fridge';
+        if (captureBtn) captureBtn.textContent = appState.cookMode === 'dish' ? '🖼️ Capture Food' : '📸 Capture';
         modal.classList.remove('hidden');
 
         try {
@@ -2237,25 +2285,32 @@ function initEvents() {
     }
 
     async function runScan(fileOrBlob) {
+        const isDishScan = appState.cookMode === 'dish';
         const scanOverlay = document.createElement('div');
         scanOverlay.className = 'scan-overlay';
         scanOverlay.innerHTML = `
             <div class="scan-overlay-content">
                 <div class="scanner-laser"></div>
-                <div class="scan-spinner">📸</div>
-                <h3 style="font-family:var(--font-display);font-weight:700;margin-bottom:8px;">Scanning ingredients...</h3>
-                <p style="font-family:var(--font-body);font-size:0.9rem;color:var(--text-secondary);">Gemini is carefully identifying everything it can see...</p>
+                <div class="scan-spinner">${isDishScan ? '🖼️' : '📸'}</div>
+                <h3 style="font-family:var(--font-display);font-weight:700;margin-bottom:8px;">${isDishScan ? 'Reading food image...' : 'Scanning ingredients...'}</h3>
+                <p style="font-family:var(--font-body);font-size:0.9rem;color:var(--text-secondary);">${isDishScan ? 'Gemini is figuring out what this dish looks like and how to recreate it...' : 'Gemini is carefully identifying everything it can see...'}</p>
             </div>`;
         document.body.appendChild(scanOverlay);
 
         try {
             const formData = new FormData();
-            formData.append('file', fileOrBlob, 'fridge.jpg');
-            const response = await fetch('/api/scan', { method: 'POST', body: formData });
+            formData.append('file', fileOrBlob, isDishScan ? 'food.jpg' : 'fridge.jpg');
+            const response = await fetch(isDishScan ? '/api/analyze-food-image' : '/api/scan', { method: 'POST', body: formData });
             if (!response.ok) throw new Error('Scan failed');
             const data = await response.json();
-            const detected = data.ingredients || [];
             document.body.removeChild(scanOverlay);
+
+            if (isDishScan) {
+                applyFoodImageAnalysis(data);
+                return;
+            }
+
+            const detected = data.ingredients || [];
             if (detected.length > 0) {
                 showScanReview(detected);
             } else {
@@ -2264,8 +2319,36 @@ function initEvents() {
         } catch (err) {
             console.error('Scanning failed:', err);
             if (document.body.contains(scanOverlay)) document.body.removeChild(scanOverlay);
-            showToast("The fridge scanner had a glitch. Please try again!");
+            showToast(isDishScan ? "The food scanner had a glitch. Please try another photo!" : "The fridge scanner had a glitch. Please try again!");
         }
+    }
+
+    function applyFoodImageAnalysis(data) {
+        const dish = (data.detected_dish || '').trim();
+        const styleNotes = (data.style_notes || '').trim();
+        const recipeHint = (data.recipe_hint || '').trim();
+        const visibleIngredients = Array.isArray(data.visible_ingredients) ? data.visible_ingredients : [];
+
+        if (!dish && !recipeHint) {
+            showToast("I couldn't confidently identify a dish from that image. Try a closer food photo.");
+            return;
+        }
+
+        if (DOM.dishTargetInput && dish) {
+            DOM.dishTargetInput.value = dish;
+            appState.dishTarget = dish;
+        }
+
+        appState.dishImageHint = [recipeHint, styleNotes]
+            .filter(Boolean)
+            .join(' ');
+
+        if (visibleIngredients.length > 0) {
+            commitIngredientsToList(visibleIngredients, 'food image');
+        }
+
+        updateInputTextareaAndSync();
+        showToast(dish ? `Looks like ${dish}. I can help you cook something like it. 🍽️` : "Food image read. I can help you cook something like it. 🍽️");
     }
 
     function showScanReview(ingredients) {
@@ -2300,7 +2383,8 @@ function initEvents() {
         function addNext() {
             if (idx >= ingredients.length) {
                 if (added > 0) {
-                    const label = source === 'scan' ? `Added ${added} ingredient${added > 1 ? 's' : ''} from scan` : `Added ${added} ingredient${added > 1 ? 's' : ''} from voice`;
+                    const sourceLabel = source === 'scan' ? 'scan' : source === 'food image' ? 'food image' : 'voice';
+                    const label = `Added ${added} ingredient${added > 1 ? 's' : ''} from ${sourceLabel}`;
                     showToast(label);
                 }
                 return;
@@ -2462,6 +2546,7 @@ function initEvents() {
             appState.currentRecipe = null;
             appState.planRecipeHint = null;
             appState.dishTarget = '';
+            appState.dishImageHint = '';
             DOM.ingredientsInput.value = '';
             if (DOM.dishTargetInput) DOM.dishTargetInput.value = '';
             updateInputTextareaAndSync();
@@ -2937,7 +3022,11 @@ function initVoiceInput() {
         const transcript = voiceRecognition._finalTranscript;
         voiceRecognition._finalTranscript = null;
         if (transcript) {
-            showVoiceConfirm(transcript);
+            if (appState.cookMode === 'dish') {
+                applyDishVoiceTranscript(transcript);
+            } else {
+                showVoiceConfirm(transcript);
+            }
         }
     };
 
@@ -2968,6 +3057,22 @@ function initVoiceInput() {
             }
         });
     }
+}
+
+function applyDishVoiceTranscript(transcript) {
+    const dish = cleanIngredientText(transcript).replace(/[.!?]$/, '').trim();
+    if (!dish || dish.length < 2) {
+        showToast("I didn't catch the dish name. Try saying it again.");
+        return;
+    }
+
+    if (DOM.dishTargetInput) {
+        DOM.dishTargetInput.value = dish;
+        appState.dishTarget = dish;
+    }
+    appState.dishImageHint = '';
+    updateInputTextareaAndSync();
+    showToast(`Got it — ${dish}. 🍽️`);
 }
 
 function showVoiceConfirm(transcript) {
@@ -3006,7 +3111,7 @@ function updateVoiceBtnState(listening) {
     const text = document.getElementById('voice-btn-text');
     if (!btn) return;
     btn.classList.toggle('listening', listening);
-    if (text) text.textContent = listening ? 'Listening...' : 'Speak';
+    if (text) text.textContent = listening ? 'Listening...' : (appState.cookMode === 'dish' ? 'Say dish' : 'Speak');
 }
 
 
