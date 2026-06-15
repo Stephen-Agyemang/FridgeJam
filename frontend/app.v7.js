@@ -732,6 +732,9 @@ const FOOD_JOKES = [
 let jokeIndex = 0;
 let gameScore = 0;
 let gameStreak = 0;
+let gameMisses = 0;
+let gameRankedScore = 0;
+let gameRankedLocked = false;
 let entertainChoice = null; // 'jokes' | 'game' | null
 let pendingRecipeData = null; // store finished recipe until user clicks "See My Recipe"
 let jokesViewedCount = 0;
@@ -742,6 +745,7 @@ let leaderboardReady = false;
 let leaderboardSubmittedScore = 0;
 
 const GAME_ITEMS = ['🍅','🥕','🧅','🥦','🍋','🥚','🧄','🌽','🍄','🥑','🍇','🥝','🍓','🫑','🥒'];
+const GAME_RANKED_MISS_LIMIT = 5;
 
 function pickEntertain(choice) {
     entertainChoice = choice;
@@ -837,10 +841,17 @@ async function loadLeaderboard() {
 function updateLeaderboardSubmitState() {
     const form = document.getElementById('leaderboard-submit-form');
     const input = document.getElementById('leaderboard-name-input');
+    const note = document.getElementById('leaderboard-submit-note');
     if (!form) return;
 
-    const canSubmit = gameScore > 0 && leaderboardSubmittedScore === 0;
+    const canSubmit = gameRankedLocked && gameRankedScore > 0 && leaderboardSubmittedScore === 0;
     form.classList.toggle('hidden', !canSubmit);
+
+    if (note) {
+        note.textContent = gameRankedLocked
+            ? `Your leaderboard score is ${gameRankedScore}. Recording stopped when you made your 5th miss, but you can keep playing for fun.`
+            : `Leaderboard recording stops at your 5th missed ingredient. You can keep playing after that for fun.`;
+    }
 
     if (input && canSubmit && !input.value.trim()) {
         input.value = localStorage.getItem('fridgejamLeaderboardName') || '';
@@ -864,8 +875,13 @@ async function submitLeaderboardScore(e) {
         return;
     }
 
-    if (gameScore <= 0) {
-        showToast("Catch at least one ingredient first!");
+    if (!gameRankedLocked) {
+        showToast("Leaderboard score locks after 5 missed ingredients.");
+        return;
+    }
+
+    if (gameRankedScore <= 0) {
+        showToast("Catch at least one ingredient before the 5th miss!");
         return;
     }
 
@@ -883,11 +899,12 @@ async function submitLeaderboardScore(e) {
     try {
         await leaderboardDb.collection('game_scores').add({
             nickname,
-            score: gameScore,
+            score: gameRankedScore,
             gameType: 'catch-ingredients',
+            missesLimit: GAME_RANKED_MISS_LIMIT,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        leaderboardSubmittedScore = gameScore;
+        leaderboardSubmittedScore = gameRankedScore;
         localStorage.setItem('fridgejamLeaderboardName', nickname);
         updateLeaderboardSubmitState();
         await loadLeaderboard();
@@ -1134,7 +1151,11 @@ function startMiniGame() {
     stopMiniGame();
     const arena = document.getElementById('game-arena');
     if (!arena) return;
-    gameScore = 0; gameStreak = 0;
+    gameScore = 0;
+    gameStreak = 0;
+    gameMisses = 0;
+    gameRankedScore = 0;
+    gameRankedLocked = false;
     leaderboardSubmittedScore = 0;
     gameStartTime = Date.now();
     updateGameUI();
@@ -1186,6 +1207,9 @@ function spawnItem(arena) {
         if (el.classList.contains('caught')) return;
         el.classList.add('caught');
         gameScore += 10 + gameStreak * 2;
+        if (!gameRankedLocked) {
+            gameRankedScore = gameScore;
+        }
         gameStreak++;
         updateGameUI();
         setTimeout(() => el.remove(), 300);
@@ -1196,6 +1220,15 @@ function spawnItem(arena) {
     el.addEventListener('animationend', () => {
         if (!el.classList.contains('caught')) {
             gameStreak = 0;
+            if (!gameRankedLocked) {
+                gameMisses++;
+                if (gameMisses >= GAME_RANKED_MISS_LIMIT) {
+                    gameMisses = GAME_RANKED_MISS_LIMIT;
+                    gameRankedScore = gameScore;
+                    gameRankedLocked = true;
+                    showToast(`Ranked score locked at ${gameRankedScore}. Keep playing for fun!`);
+                }
+            }
             updateGameUI();
             el.remove();
         }
@@ -1207,10 +1240,12 @@ function spawnItem(arena) {
 function updateGameUI() {
     const scoreEl  = document.getElementById('game-score');
     const streakEl = document.getElementById('game-streak');
+    const missesEl = document.getElementById('game-misses');
     const diffEl   = document.getElementById('game-difficulty');
     
     if (scoreEl)  scoreEl.textContent = gameScore;
     if (streakEl) streakEl.textContent = gameStreak;
+    if (missesEl) missesEl.textContent = `${gameMisses}/${GAME_RANKED_MISS_LIMIT}`;
     
     if (diffEl) {
         const elapsed = gameStartTime ? (Date.now() - gameStartTime) / 1000 : 0;

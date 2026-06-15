@@ -1104,7 +1104,9 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
 /* ── Mini Game ── */
 .game-score-bar {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-around;
+  gap: 6px 12px;
   padding: 8px 16px;
   font-family: var(--font-display);
   font-size: 0.9rem;
@@ -1251,6 +1253,14 @@ body.dark-theme .chef-btn:not(.selected) .chef-name-label {
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.leaderboard-submit-note {
+  margin: -2px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 650;
+  line-height: 1.35;
 }
 
 .leaderboard-submit-row {
