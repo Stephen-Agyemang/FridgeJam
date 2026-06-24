@@ -1,8 +1,8 @@
-google-genai
-fastapi
-uvicorn
-python-dotenv
-pillow
-pydantic
-python-multipart
-slowapi
+google-genai==2.6.0
+fastapi==0.136.1
+uvicorn==0.47.0
+python-dotenv==1.2.2
+pillow==12.2.0
+pydantic==2.13.4
+python-multipart==0.0.29
+slowapi==0.1.9
