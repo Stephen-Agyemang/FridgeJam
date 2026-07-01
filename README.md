@@ -2,12 +2,24 @@
 
 Welcome to **FridgeJam**! An interactive, cozy web application built for the GDG Coding Jam (Track 4). FridgeJam transforms random leftovers in your fridge into mouth-watering, personalized recipes using Gemini AI. 
 
-This repository features a fully responsive, state-of-the-art retro-cozy design, dynamic Sound Synthesizer, custom physics-based Leftovers Jar mini-game, and several high-fidelity modern upgrades:
-- 🥗 **Chef Chloe (Nutritious/Fitness Coach)**: A brand new chef personality specialized in plant-based, keto-friendly, and protein-packed meals in a high-energy motivational voice.
+This repository features a fully responsive, mobile-first retro-cozy design, dynamic Sound Synthesizer, custom physics-based Leftovers Jar mini-game, and a deep, multimodal feature set:
+
+**Recipe generation & input modes**
 - 📸 **Magical Fridge Photo Scanner (Multimodal Vision)**: Upload a photo of your fridge, analyze ingredients with `gemini-2.5-flash` in-memory, and watch them animate and drop into the Leftovers Jar as paper slips with realistic bubble sound effects!
+- 🍽️ **Dish Scanner & Cook-by-Name**: Photograph a finished dish (`/api/analyze-food-image`) or simply name the meal you want, and FridgeJam generates a targeted recipe — marking which ingredients you already have versus what you need to buy.
+- 🎤 **Voice Input**: Dictate your ingredients or a dish name hands-free using the browser's Web Speech API.
+- 🥦 **Dietary Guardrails**: Nine hard, safety-critical dietary restrictions (halal, kosher, vegetarian, vegan, pescatarian, gluten-free, nut-free, dairy-free, and strict Jain) enforced as non-negotiable constraints in the prompt.
+- ⏳ **Expiry-First Mode**: Tag ingredients about to go bad and the AI builds the dish around them to cut food waste.
+
+**Planning, tracking & export**
+- 🗓️ **AI Meal Planner**: Generates personalized 7-day meal plans (`/api/meal-plan`) shaped by a mood directive (Light, Bold, Quick, Diverse), cuisine exploration, and a taste profile mined from your saved recipes and cooking history.
+- ⏲️ **Step-by-Step Cooking Timers**: Each recipe step gets a background timer that alerts you when it's done.
 - ⚡ **Accurate Nutrient & Calorie Metrics**: A premium indie macro tracker displaying Calories, Protein, Carbs, and Fat styled in colorful pastel capsule pills.
 - 📄 **Beautiful Landscape PDF Exporters**: Populates a dedicated double-column print layout and downloads a print-ready A4 cookbook sheet using `html2pdf.js` with CORS cache-busting.
-- 🎮 **Dynamic Game Progressive Difficulty**: Mini-game tracks elapsed time, recursively shrinking spawn intervals (down to `450ms`) and acceleration speeds across four difficulty stages (*Cozy 🥗*, *Simmering ⏱️*, *Spicy! 🌶️*, *CHEF MODE! ⚡🔥*).
+
+**Personality & play**
+- 🥗 **Four Chef Personalities**: Thrifty Chef Tony (budget), Grandma Marie (cozy), Chef Pierre (fine dining), and Healthy Chef Chloe (plant-based/fitness) — each with a distinct culinary voice.
+- 🎮 **Ranked Mini-Game with Global Leaderboard**: The *Catch the Ingredients* game tracks elapsed time, recursively shrinking spawn intervals (down to `450ms`) across four difficulty stages (*Cozy 🥗*, *Simmering ⏱️*, *Spicy! 🌶️*, *CHEF MODE! ⚡🔥*). Ranked scoring locks at the 5th miss and submits to a **Firestore-backed global leaderboard**.
 - 💬 **Gemini Interactive Joke Reviewer**: After reading three puns, the chef prompts you to tell one back! It analyzes your joke via Gemini in real-time, giving funny laughs or blunt-but-playful reactions in your selected chef's voice with corresponding sound effects.
 
 ---
@@ -76,7 +88,9 @@ FridgeJam was engineered from the ground up to be **highly scalable, cost-effici
 
 1. **Single-Container Architecture**: The entire stack (FastAPI backend + static HTML/CSS/JS frontend) is served from a single port. The frontend makes relative calls to the API (e.g., `/api/recipe`), removing the need for separate frontend hosts or CORS configuration in production.
 2. **Stateless Processing**: The Fridge Photo Scanner parses uploads completely in-memory using PIL and `BytesIO`, immediately passing them to Gemini. Since no temporary files are written to local disk storage, the backend is 100% stateless and horizontal-scaling friendly.
-3. **Scale-to-Zero Compatibility**: Works out of the box with serverless container platforms like Google Cloud Run. You only pay for active CPU seconds when requests are running.
+3. **Client-Side Persistence**: User data (saved recipes, taste profile, cook history, preferences) lives in the browser's `localStorage`, so it survives reloads without any per-user backend database. The only server-side datastore is a **Cloud Firestore** collection (`game_scores`) powering the public mini-game leaderboard, locked down by validated security rules in `firestore.rules`.
+4. **Scale-to-Zero Compatibility**: Works out of the box with serverless container platforms like Google Cloud Run. You only pay for active CPU seconds when requests are running. The frontend retries recipe generation with exponential backoff so the first request after a cold start recovers automatically.
+5. **Hardened Endpoints**: Per-IP rate limiting (`slowapi`), `TrustedHostMiddleware`, a locked CORS origin, upload size caps, and a decompression-bomb guard on all image routes.
 
 ---
 
@@ -92,11 +106,21 @@ Google Cloud Run is the perfect host for FridgeJam since it natively supports co
    ```bash
    gcloud run deploy fridgejam \
      --source . \
-     --env-vars-file backend/.env \
+     --set-env-vars GEMINI_API_KEY=your_api_key_here \
      --allow-unauthenticated \
      --region us-central1
    ```
 3. That's it! Google Cloud will automatically build your container using Cloud Build, upload it, configure the `PORT`, inject your API keys, and give you a live production HTTPS URL.
+
+### Deploying the Frontend & Firestore Rules (Firebase)
+Production hosting is served through Firebase Hosting, which rewrites all traffic to the Cloud Run service. The mini-game leaderboard needs its Firestore rules published before scores can be saved:
+```bash
+# Publish the static frontend
+firebase deploy --only hosting
+
+# Publish the game_scores leaderboard security rules
+firebase deploy --only firestore:rules
+```
 
 ### Running Docker Locally
 If you want to test the production container locally:
@@ -124,6 +148,6 @@ Then visit [http://localhost:8080/](http://localhost:8080/).
 
 ## 🎮 Interactive Entertainment & AI Turing Challenges
 FridgeJam keeps you entertained while your AI meal is cooking with two highly competitive and interactive games:
-1. **Dynamic Skillet Game (Progressive Difficulty)**: Catch falling ingredients in your skillet! The game speeds up the longer you play—the spawning rate accelerates down to `450ms` and falling items speed up, progressing through **Cozy 🥗**, **Simmering ⏱️**, **Spicy! 🌶️**, and **CHEF MODE! ⚡🔥** stages.
+1. **Dynamic Skillet Game (Progressive Difficulty + Ranked Leaderboard)**: Catch falling ingredients in your skillet! The game speeds up the longer you play—the spawning rate accelerates down to `450ms` and falling items speed up, progressing through **Cozy 🥗**, **Simmering ⏱️**, **Spicy! 🌶️**, and **CHEF MODE! ⚡🔥** stages. Ranked scoring locks at your 5th miss, and you can submit your run to a **Firestore-backed global leaderboard** (top catches) under a nickname.
 2. **Gemini Joke Reviewer**: After reading three food puns, the chef challenges you to tell a joke back! It passes your joke to a Gemini API endpoint (`/api/evaluate-joke`) to evaluate it in real-time, giving funny laughs or blunt-but-playful reactions in your active chef's persona accompanied by custom synth beeps and click sounds.
 
