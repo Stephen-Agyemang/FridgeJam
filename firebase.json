@@ -1,4 +1,7 @@
 {
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "hosting": {
     "public": "frontend",
     "ignore": [
@@ -11,7 +14,7 @@
         "source": "**",
         "run": {
           "serviceId": "fridgejam",
-          "region": "europe-west1"
+          "region": "us-central1"
         }
       }
     ]
