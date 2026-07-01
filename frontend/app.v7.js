@@ -1447,7 +1447,12 @@ async function startCooking() {
         });
         appState.planRecipeHint = null;
         let recipeResponse = null;
-        for (let attempt = 0; attempt <= 1; attempt++) {
+        // Retry up to 4× with exponential backoff (2s, 4s, 8s). A cold Cloud Run
+        // container (scaled to zero when idle) can take 10-20s to wake up, which
+        // reads as a 5xx or a dropped connection — retry both so the first cook
+        // after a pause recovers on its own instead of showing a stove error.
+        const RECIPE_MAX_ATTEMPTS = 4;
+        for (let attempt = 0; attempt < RECIPE_MAX_ATTEMPTS; attempt++) {
             try {
                 recipeResponse = await fetch('/api/recipe', {
                     method: 'POST',
@@ -1456,9 +1461,14 @@ async function startCooking() {
                 });
                 if (recipeResponse.ok || recipeResponse.status < 500) break;
             } catch (_networkErr) {
-                if (attempt === 1) throw new Error("The kitchen connection dropped! Check your internet and try again.");
+                recipeResponse = null;
+                if (attempt === RECIPE_MAX_ATTEMPTS - 1) {
+                    throw new Error("The kitchen connection dropped! Check your internet and try again.");
+                }
             }
-            await new Promise(r => setTimeout(r, 2000));
+            if (attempt < RECIPE_MAX_ATTEMPTS - 1) {
+                await new Promise(r => setTimeout(r, 2000 * Math.pow(2, attempt)));
+            }
         }
 
         if (!recipeResponse || !recipeResponse.ok) {
