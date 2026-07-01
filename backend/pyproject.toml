@@ -17,3 +17,9 @@ dependencies = [
 [[tool.uv.index]]
 url = "https://pypi.org/simple/"
 default = true
+
+[tool.pytest.ini_options]
+# Run pytest from the backend/ directory. pythonpath="." puts backend/ on
+# sys.path so tests can `from main import app` (matching the project layout).
+pythonpath = ["."]
+testpaths = ["tests"]

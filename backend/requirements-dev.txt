@@ -1,0 +1,4 @@
+# CI / local-dev only — NOT installed into the production image.
+pytest>=8.0
+httpx>=0.27
+ruff>=0.6
