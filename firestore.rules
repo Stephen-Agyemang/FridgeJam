@@ -28,6 +28,24 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Private account sync for optional sign-in.
+    // Each user can only read and write their own saved recipes, meal plan,
+    // and lightweight preferences.
+    match /users/{userId}/private/{docId} {
+      allow read: if request.auth != null
+        && request.auth.uid == userId
+        && docId == 'appData';
+
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && docId == 'appData'
+        && request.resource.data.keys().hasOnly(
+          ['favorites', 'mealPlan', 'preferences', 'updatedAt']
+        );
+
+      allow delete: if false;
+    }
+
     // Everything else stays locked by default.
     match /{document=**} {
       allow read, write: if false;

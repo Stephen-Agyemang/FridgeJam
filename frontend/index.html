@@ -60,6 +60,10 @@
                     <span class="toggle-icon">📅</span>
                     <span class="toggle-text">Meal Planner</span>
                 </button>
+                <button type="button" id="account-btn" class="theme-toggle-btn account-btn" aria-label="Open account options">
+                    <span class="toggle-icon" id="account-btn-icon">👤</span>
+                    <span class="toggle-text" id="account-btn-text">Sign in</span>
+                </button>
                 <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Night Kitchen Mode">
                     <span class="toggle-icon">🌙</span>
                     <span class="toggle-text">Twilight Kitchen</span>
@@ -560,6 +564,77 @@
         </div>
     </div>
 
+    <!-- Optional Account Modal -->
+    <div id="account-modal" class="account-modal hidden" role="dialog" aria-modal="true" aria-labelledby="account-modal-title">
+        <div class="account-modal-panel">
+            <div class="account-modal-header">
+                <div>
+                    <span class="account-modal-icon" id="account-modal-icon">👤</span>
+                    <h3 id="account-modal-title" class="account-modal-title">Sign in to sync</h3>
+                    <p id="account-modal-subtitle" class="account-modal-subtitle">Keep cooking as a guest, or sync your recipe box and meal plan across devices.</p>
+                </div>
+                <button type="button" id="account-modal-close" class="account-modal-close" aria-label="Close account options">✕</button>
+            </div>
+
+            <div id="account-signed-out" class="account-auth-view">
+                <button type="button" id="auth-google-btn" class="auth-provider-btn">
+                    <span class="auth-provider-icon">G</span>
+                    <span>Continue with Google</span>
+                </button>
+                <button type="button" id="auth-apple-btn" class="auth-provider-btn">
+                    <span class="auth-provider-icon"></span>
+                    <span>Continue with Apple</span>
+                </button>
+                <button type="button" id="auth-passkey-btn" class="auth-provider-btn">
+                    <span class="auth-provider-icon">🔐</span>
+                    <span>Continue with passkey</span>
+                </button>
+
+                <div class="auth-divider"><span>or</span></div>
+
+                <form id="auth-email-form" class="auth-inline-form">
+                    <label for="auth-email-input">Email magic link</label>
+                    <div class="auth-input-row">
+                        <input id="auth-email-input" type="email" autocomplete="email" placeholder="you@example.com">
+                        <button type="submit">Send link</button>
+                    </div>
+                </form>
+
+                <form id="auth-phone-form" class="auth-inline-form">
+                    <label for="auth-phone-input">Phone number</label>
+                    <div class="auth-input-row">
+                        <input id="auth-phone-input" type="tel" autocomplete="tel" placeholder="+1 555 123 4567">
+                        <button type="submit" id="auth-phone-send">Send code</button>
+                    </div>
+                    <div id="auth-phone-code-row" class="auth-input-row hidden">
+                        <input id="auth-phone-code-input" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code">
+                        <button type="button" id="auth-phone-confirm">Verify</button>
+                    </div>
+                    <div id="auth-recaptcha"></div>
+                </form>
+
+                <button type="button" id="auth-guest-btn" class="auth-guest-btn">Continue as guest</button>
+            </div>
+
+            <div id="account-signed-in" class="account-auth-view hidden">
+                <div class="account-profile-card">
+                    <div class="account-avatar" id="account-avatar">👤</div>
+                    <div>
+                        <p id="account-display-name" class="account-display-name">Signed in</p>
+                        <p id="account-display-email" class="account-display-email">Sync is on</p>
+                    </div>
+                </div>
+                <div class="account-sync-list">
+                    <span>📦 Recipe Box sync</span>
+                    <span>📅 Meal Planner sync</span>
+                    <span>⚙️ Preferences backup</span>
+                </div>
+                <button type="button" id="auth-sync-now-btn" class="auth-provider-btn">Sync now</button>
+                <button type="button" id="auth-signout-btn" class="auth-guest-btn">Sign out</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Recipe Box Drawer Overlay -->
     <div id="recipe-box-backdrop" class="recipe-box-backdrop"></div>
     <div id="recipe-box-drawer" class="recipe-box-drawer" role="dialog" aria-labelledby="recipe-box-title">
@@ -769,6 +844,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script src="/__/firebase/init.js"></script>
 
     <!-- Custom Script -->
