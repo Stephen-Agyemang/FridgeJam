@@ -877,19 +877,21 @@ function updateAccountUI(user) {
     const signedIn = document.getElementById('account-signed-in');
     const title = document.getElementById('account-modal-title');
     const subtitle = document.getElementById('account-modal-subtitle');
+    const note = document.getElementById('account-modal-note');
     const name = document.getElementById('account-display-name');
     const email = document.getElementById('account-display-email');
     const avatar = document.getElementById('account-avatar');
 
     if (btn) btn.classList.toggle('account-signed-in', !!user);
     if (btnIcon) btnIcon.textContent = user ? '✅' : '👤';
-    if (btnText) btnText.textContent = user ? 'Account' : 'Sign in';
+    if (btnText) btnText.textContent = user ? 'Account' : 'Sign in to sync';
     if (signedOut) signedOut.classList.toggle('hidden', !!user);
     if (signedIn) signedIn.classList.toggle('hidden', !user);
     if (title) title.textContent = user ? 'Account sync' : 'Sign in to sync';
     if (subtitle) subtitle.textContent = user
         ? 'Your saved recipes, meal plan, and preferences can follow you across devices.'
         : 'Keep cooking as a guest, or sync your recipe box and meal plan across devices.';
+    if (note) note.classList.toggle('hidden', !!user);
     if (name) name.textContent = user ? (user.displayName || 'FridgeJam cook') : '';
     if (email) email.textContent = user ? (user.email || user.phoneNumber || 'Sync is on') : '';
     if (avatar) avatar.textContent = user && user.displayName ? user.displayName.trim().charAt(0).toUpperCase() : '👤';
@@ -903,6 +905,24 @@ function openAccountModal() {
 function closeAccountModal() {
     const modal = document.getElementById('account-modal');
     if (modal) modal.classList.add('hidden');
+}
+
+function renderRecipeBoxSyncPrompt() {
+    if (currentUser) return '';
+    return `
+        <div class="recipe-box-sync-prompt">
+            <div>
+                <p class="recipe-box-sync-title">Save recipes across devices</p>
+                <p class="recipe-box-sync-copy">Sign in once and FridgeJam will sync your Recipe Box and Meal Planner.</p>
+            </div>
+            <button type="button" class="recipe-box-sync-btn" id="recipe-box-sync-btn">Sign in to sync</button>
+        </div>
+    `;
+}
+
+function bindRecipeBoxSyncPrompt() {
+    const btn = document.getElementById('recipe-box-sync-btn');
+    if (btn) btn.addEventListener('click', openAccountModal);
 }
 
 async function signInWithProvider(providerName) {
@@ -2873,7 +2893,9 @@ function initEvents() {
                     }
                     
                     saveRecipeToFavorites(appState.currentRecipe, currentImg);
-                    showToast("Recipe added to your favorites! ❤️");
+                    showToast(currentUser
+                        ? "Recipe added and synced to your Recipe Box."
+                        : "Recipe saved on this device. Sign in to sync it.");
                 } else {
                     heartIcon.textContent = '🤍';
                     synth.playDialClick(); // play cute tactile click sound
@@ -3149,17 +3171,22 @@ function renderRecipeBoxList() {
     
     if (appState.favorites.length === 0) {
         DOM.recipeBoxList.innerHTML = `
+            ${renderRecipeBoxSyncPrompt()}
             <div class="recipe-box-empty">
                 <p>Your Recipe Box is empty!</p>
-                <p class="empty-sub">Heart recipe cards to save them here for later zero-waste inspiration. ❤️</p>
+                <p class="empty-sub">Heart recipe cards to save them here. Sign in anytime to sync them across devices.</p>
             </div>
         `;
+        bindRecipeBoxSyncPrompt();
         return;
     }
     
     // Sort favorites so newest is at the top
     const sorted = [...appState.favorites].sort((a, b) => new Date(b.saved_at) - new Date(a.saved_at));
     
+    DOM.recipeBoxList.insertAdjacentHTML('beforeend', renderRecipeBoxSyncPrompt());
+    bindRecipeBoxSyncPrompt();
+
     sorted.forEach(recipe => {
         const wrapper = document.createElement('div');
         wrapper.className = 'recipe-box-item';

@@ -2701,6 +2701,19 @@ body.dark-theme .account-modal-panel {
   margin: 0;
 }
 
+.account-modal-note {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 2px solid #25283D;
+  border-radius: 12px;
+  background: #D7F5DF;
+  color: #25283D;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .account-modal-close {
   width: 38px;
   height: 38px;
@@ -3956,6 +3969,75 @@ body.resizing-drawer * {
   color: var(--text-muted);
   font-weight: 500;
   margin-top: 8px;
+}
+
+.recipe-box-sync-prompt {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 2px solid #25283D;
+  border-radius: 12px;
+  background: #D7F5DF;
+  color: #25283D;
+  box-shadow: 3px 3px 0 #25283D;
+}
+
+.recipe-box-sync-title,
+.recipe-box-sync-copy {
+  margin: 0;
+}
+
+.recipe-box-sync-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.recipe-box-sync-copy {
+  margin-top: 3px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  font-weight: 700;
+  opacity: 0.78;
+}
+
+.recipe-box-sync-btn {
+  min-height: 38px;
+  white-space: nowrap;
+  border: 2px solid #25283D;
+  border-radius: 10px;
+  background: #fff;
+  color: #25283D;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 0 12px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #25283D;
+}
+
+.recipe-box-sync-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 3px 3px 0 #25283D;
+}
+
+[data-theme="dark"] .recipe-box-sync-prompt,
+body.dark-theme .account-modal-note {
+  border-color: #A0B0CC;
+  box-shadow: 3px 3px 0 #A0B0CC;
+}
+
+@media (max-width: 520px) {
+  .recipe-box-sync-prompt {
+    grid-template-columns: 1fr;
+  }
+
+  .recipe-box-sync-btn {
+    width: 100%;
+  }
 }
 
 /* Recipe Box Card */
