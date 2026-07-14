@@ -1,0 +1,843 @@
+/* FridgeJam input workbench, ingredient jar, cook mode, and chef picker */
+
+/* --- STEP 1: Interactive Counter Inputs --- */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+  gap: 28px;
+  align-items: start;
+}
+
+.ingredients-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label, .chef-selection-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.cook-mode-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 5px;
+  margin-bottom: 18px;
+  background: rgba(199, 189, 232, 0.18);
+  border: 2px solid var(--glass-border);
+  border-radius: 22px;
+  box-shadow: inset 0 0 0 1px rgba(37, 40, 61, 0.04);
+}
+
+.cook-mode-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 17px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+}
+
+.cook-mode-option:hover {
+  transform: translateY(-1px);
+}
+
+.cook-mode-option.active {
+  background: #C7BDE8;
+  color: #25283D;
+  box-shadow: 0 4px 0 #25283D;
+}
+
+.cook-mode-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.dish-target-group {
+  margin-bottom: 14px;
+}
+
+.dish-target-input {
+  width: 100%;
+  min-height: 54px;
+  padding: 13px 18px;
+  background: var(--input-bg);
+  border: 2px solid var(--input-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 0 var(--input-border);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  transition: var(--transition-gentle);
+}
+
+.dish-target-input:focus {
+  box-shadow: 0 6px 0 var(--input-border);
+}
+
+.dish-mode-hidden {
+  display: none !important;
+}
+
+.ingredient-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+  position: relative;
+}
+
+#ingredients-input.thought-input {
+  width: 100%;
+  min-height: 96px;
+  padding: 14px 18px;
+  background: var(--input-bg);
+  border: 2px solid var(--input-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-primary);
+  line-height: 1.7;
+  resize: vertical;
+  transition: var(--transition-gentle);
+  box-shadow: 0 4px 0 var(--input-border);
+}
+
+#ingredients-input.thought-input:focus {
+  outline: none;
+  border-color: var(--input-border);
+  background: var(--input-bg);
+  box-shadow: 0 6px 0 var(--input-border);
+}
+
+.char-count {
+  display: block;
+  text-align: right;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  opacity: 0.8;
+  transition: color 0.3s ease;
+}
+
+.char-count.warning {
+  color: var(--accent-copper);
+  font-weight: 500;
+}
+
+.char-count.danger {
+  color: var(--accent-apple);
+  font-weight: 600;
+}
+
+/* Selected Ingredient Tag Pool */
+.ingredients-pool {
+  background: var(--input-bg);
+  border: 2px dashed var(--input-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 80px;
+  align-content: flex-start;
+}
+
+.placeholder-tag {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  align-self: center;
+  width: 100%;
+  text-align: center;
+  font-style: italic;
+}
+
+.ingredient-tag {
+  background: var(--glass-bg);
+  border: 2px solid var(--glass-border);
+  color: var(--text-primary);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 3px 0 var(--glass-border);
+  animation: scale-in-tag 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transition: var(--transition-gentle);
+}
+
+.ingredient-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 var(--glass-border);
+}
+
+.btn-tag-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-gentle);
+}
+
+.btn-tag-remove:hover {
+  color: var(--accent-apple);
+  transform: scale(1.2);
+}
+
+/* Expiry-First Mode — expiring ingredient chip */
+.ingredient-tag.expiring {
+  border-color: #D4782A;
+  background: #FFF4E6;
+  box-shadow: 0 3px 0 #D4782A;
+}
+body.dark-theme .ingredient-tag.expiring {
+  border-color: #E8913A;
+  background: #2A1F10;
+  box-shadow: 0 3px 0 #E8913A;
+}
+
+.btn-tag-expiry {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.4;
+  transition: var(--transition-gentle);
+  padding: 0;
+}
+.btn-tag-expiry:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+.ingredient-tag.expiring .btn-tag-expiry {
+  opacity: 1;
+}
+
+/* Expiry-First hint label */
+.expiry-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 4px;
+  display: none;
+}
+.expiry-hint.visible {
+  display: block;
+}
+
+@keyframes scale-in-tag {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* --- Chef Selection Picker --- */
+.chef-selection-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 32px;
+}
+
+.chef-selection-group > label {
+  grid-column: 1 / -1;
+}
+
+.chef-buttons {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+.chef-btn {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 2px solid var(--chef-btn-border);
+  background: var(--chef-btn-bg);
+  box-shadow: 0 4px 0 var(--chef-btn-border);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: var(--transition-spring);
+  outline: none;
+}
+
+.chef-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--chef-btn-border);
+  background: var(--chef-btn-bg);
+}
+
+.chef-btn.selected, .chef-btn[aria-checked="true"] {
+  background: var(--accent-copper);
+  border-color: var(--chef-btn-border);
+  box-shadow: 0 4px 0 var(--chef-btn-border);
+  transform: translateY(0);
+}
+
+.chef-btn.selected .chef-name-label, .chef-btn[aria-checked="true"] .chef-name-label {
+  color: var(--text-on-accent);
+}
+
+body.dark-theme .chef-btn:not(.selected) .chef-name-label {
+  color: #FAF9F6; /* high contrast cream color for visibility */
+  opacity: 0.85;
+}
+
+.chef-btn:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+.chef-emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.chef-name-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+/* Dynamic Chef Bio Glass Box */
+.chef-bio-display {
+  background: var(--bio-bg);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  margin-top: 4px;
+  text-align: center;
+  box-shadow: var(--glass-shadow);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  will-change: transform, opacity;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.chef-bio-display.fade-in {
+  animation: fade-in 0.4s var(--transition-gentle) forwards;
+}
+
+#chef-bio-name {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+#chef-bio-role {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--accent-copper);
+  margin-bottom: 8px;
+}
+
+#chef-bio-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* --- Cook Dial Button --- */
+.action-btn-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 48px;
+  background: var(--accent-copper);
+  color: #FAF7F0;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border: 2.5px solid var(--glass-border);
+  border-radius: 24px;
+  cursor: pointer;
+  box-shadow: 0 5px 0 var(--glass-border);
+  transition: var(--transition-spring);
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--glass-border);
+}
+
+.btn-primary:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+.btn-primary:disabled {
+  background: #C8C6D4;
+  color: rgba(37, 40, 61, 0.35);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 3px 0 rgba(37, 40, 61, 0.2);
+  border-color: rgba(37, 40, 61, 0.3);
+}
+
+.btn-icon {
+  font-size: 1.1rem;
+  transition: transform 0.35s ease;
+}
+
+.btn-primary:hover .btn-icon {
+  animation: spin-sizzle 3s linear infinite;
+}
+
+@keyframes spin-sizzle {
+  0% { transform: rotate(0); }
+  100% { transform: rotate(360deg); }
+}
+
+.app-footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  padding-top: 16px;
+  border-top: 2px solid var(--glass-border);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Dietary Restriction Chips ─────────────────────────────────────────── */
+.dietary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.dietary-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  margin: 0;
+}
+
+.dietary-optional {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.dietary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dietary-chip {
+  padding: 8px 18px;
+  border-radius: 24px;
+  border: 2px solid #25283D;
+  background: transparent;
+  color: #25283D;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, transform 0.12s, box-shadow 0.12s;
+}
+
+.dietary-chip:hover {
+  background: #E8E4F0;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 0 #25283D;
+}
+
+.dietary-chip-active {
+  background: #25283D;
+  color: #FAF7F0;
+  box-shadow: 0 3px 0 rgba(37, 40, 61, 0.4);
+  transform: translateY(-1px);
+}
+
+body.dark-theme .dietary-chip {
+  border-color: #A0B0CC;
+  color: #D0DBF0;
+}
+
+body.dark-theme .dietary-chip:hover {
+  background: rgba(160, 176, 204, 0.15);
+}
+
+body.dark-theme .dietary-chip-active {
+  background: #A0B0CC;
+  color: #1A1E2E;
+  box-shadow: 0 3px 0 rgba(160, 176, 204, 0.4);
+}
+
+
+/* ── Footer Tagline ─────────────────────────────────────────────────────── */
+.footer-tagline {
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+}
+
+/* Glass Windowsill Jar Nook */
+.jar-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: var(--glass-bg);
+  border: 2.5px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 22px 16px;
+  box-shadow: var(--glass-shadow);
+  width: 100%;
+}
+
+.jar-windowsill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.windowsill-header {
+  text-align: center;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.windowsill-header h3 {
+  font-family: var(--font-display);
+  font-size: 135%;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.windowsill-header p {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Wooden Shelf Effect Under Jar Shadow */
+.jar-windowsill::after {
+  content: '';
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+  height: 14px;
+  background: linear-gradient(to bottom, #d2a679, #996633);
+  border-radius: 4px;
+  box-shadow: 0 4px 0 var(--glass-border);
+  border: 2px solid var(--glass-border);
+}
+
+/* Glass Jar Elements */
+.jar-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 12px;
+  --jar-width: min(210px, 78%);
+  --jar-height: 300px;
+}
+
+/* Cozy Cork Stopper */
+.jar-cork {
+  width: calc(var(--jar-width) * 0.52);
+  height: 20px;
+  background: linear-gradient(90deg, #A77C57 0%, #D8B28D 50%, #A77C57 100%);
+  border: 2.5px solid var(--glass-border);
+  border-bottom: none;
+  border-radius: 8px 8px 3px 3px;
+  z-index: 3;
+  margin-bottom: -3px; /* sits perfectly nested on the rim */
+  position: relative;
+  box-shadow: inset 0 3px 6px rgba(255, 255, 255, 0.2), 0 2px 4px rgba(37, 40, 97, 0.1);
+}
+
+[data-theme="dark"] .jar-cork {
+  background: linear-gradient(90deg, #604530 0%, #8E6D50 50%, #604530 100%);
+}
+
+.jar-rim {
+  width: calc(var(--jar-width) * 0.62);
+  height: 18px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0.6) 100%);
+  border: 2.5px solid var(--glass-border);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  z-index: 2;
+  box-shadow: inset 0 3px 5px rgba(255,255,255,0.8);
+}
+
+[data-theme="dark"] .jar-rim {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.22) 50%, rgba(255, 255, 255, 0.08) 100%);
+  box-shadow: inset 0 3px 5px rgba(255,255,255,0.1);
+}
+
+/* Red twill jar ribbon & bow */
+.jar-thread {
+  position: absolute;
+  top: 14px; /* neck area */
+  width: calc(var(--jar-width) * 0.58);
+  height: 6px;
+  background: #D95D5D; /* warm red string */
+  border: 2px solid var(--glass-border);
+  border-radius: 4px;
+  z-index: 4;
+}
+
+.jar-thread::after {
+  content: '🎀';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) scale(1.15);
+  font-size: 1.1rem;
+  z-index: 5;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));
+}
+
+[data-theme="dark"] .jar-thread {
+  background: #A64444;
+}
+
+.jar-body {
+  width: var(--jar-width);
+  height: var(--jar-height);
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.72) 0%, rgba(246, 243, 232, 0.45) 50%, rgba(212, 226, 240, 0.58) 100%);
+  border: 2.5px solid var(--glass-border);
+  border-top: none;
+  border-radius: 12px 12px 64px 64px;
+  box-shadow:
+    inset 0 16px 28px rgba(255, 255, 255, 0.75),
+    inset -14px 0 28px rgba(0, 0, 0, 0.03),
+    inset 14px 0 28px rgba(255, 255, 255, 0.75),
+    inset 0 -22px 45px rgba(37, 40, 61, 0.06),
+    0 8px 0 var(--glass-border);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  backdrop-filter: blur(1.5px);
+}
+
+[data-theme="dark"] .jar-body {
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.15) 0%, rgba(28, 32, 54, 0.45) 60%, rgba(13, 16, 32, 0.72) 100%);
+  box-shadow:
+    inset 0 16px 28px rgba(255, 255, 255, 0.12),
+    inset -14px 0 28px rgba(0, 0, 0, 0.28),
+    inset 14px 0 28px rgba(255, 255, 255, 0.12),
+    inset 0 -22px 45px rgba(0, 0, 0, 0.35),
+    0 8px 0 var(--glass-border);
+}
+
+/* Glass glare highlight overlays */
+.jar-body::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: 14px;
+  width: 14px;
+  height: calc(100% - 48px);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.18) 100%);
+  border-radius: 12px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.jar-body::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  right: 14px;
+  width: 8px;
+  height: calc(100% - 48px);
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.jar-contents {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 24px 16px;
+  z-index: 2;
+  position: relative;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  scrollbar-width: none;
+}
+.jar-contents::-webkit-scrollbar {
+  display: none;
+}
+
+/* Beautiful Colorful Paper Slips */
+.jar-slip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 2px solid var(--glass-border);
+  border-left: 6px solid var(--slip-accent, var(--accent-copper));
+  background: var(--slip-bg, #FFF0ED);
+  font-size: 0.78rem;
+  font-family: var(--font-body);
+  color: #25283D !important; /* Locked charcoal text color for maximum seeability! */
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--glass-border);
+  max-width: 92%;
+  align-self: center;
+  will-change: transform, opacity;
+  animation: slip-drop 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.jar-slip:hover {
+  transform: rotate(0deg) scale(1.05) !important;
+  z-index: 10;
+  box-shadow: 0 4px 0 var(--glass-border);
+}
+
+.slip-emoji {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.slip-label {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Empty text in glass jar */
+.jar-empty-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  text-align: center;
+  opacity: 0.75;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.jar-empty-text.hidden {
+  display: none !important;
+  opacity: 0;
+}
+
+/* Shadow at the base of the jar */
+.jar-shadow {
+  width: calc(var(--jar-width) * 0.75);
+  height: 12px;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.15) 0%, transparent 70%);
+  margin-top: 4px;
+  border-radius: 50%;
+  opacity: 0.85;
+}
+
+/* --- Leftovers Jar Animations --- */
+@keyframes jar-shake {
+  0%   { transform: rotate(0deg) translateX(0); }
+  15%  { transform: rotate(-4deg) translateX(-8px); }
+  30%  { transform: rotate(3deg) translateX(6px); }
+  45%  { transform: rotate(-2deg) translateX(-4px); }
+  60%  { transform: rotate(1.5deg) translateX(3px); }
+  75%  { transform: rotate(-0.5deg) translateX(-1px); }
+  100% { transform: rotate(0deg) translateX(0); }
+}
+
+.jar-container.shaking {
+  animation: jar-shake 0.6s var(--transition-gentle) !important;
+}
+
+@keyframes slip-drop {
+  0% { opacity: 0; transform: translateY(-40px) rotate(0deg) scale(0.8); }
+  40% { opacity: 1; transform: translateY(4px) rotate(var(--slip-rotation, 2deg)) scale(1); }
+  60% { transform: translateY(-3px) rotate(var(--slip-rotation, 2deg)) scale(1); }
+  100% { transform: translateY(0) rotate(var(--slip-rotation, 2deg)) scale(1); }
+}
