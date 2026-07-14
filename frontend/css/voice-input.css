@@ -1,0 +1,11 @@
+/* FridgeJam voice input */
+
+.btn-voice-input.listening {
+  background: var(--accent-rose) !important;
+  animation: pulse-mic 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-mic {
+  0%, 100% { box-shadow: 0 4px 0 var(--glass-border); }
+  50% { box-shadow: 0 4px 0 var(--glass-border), 0 0 0 7px rgba(243, 160, 180, 0.3); }
+}
