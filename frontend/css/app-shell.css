@@ -1,0 +1,385 @@
+/* ==========================================================
+   FridgeJam Stylesheet — Cozy Pillowy Bold-Border Design
+   Adapted from the MoodJar & CodingJam Track4 Showcase
+   ========================================================== */
+
+/* --- Design Tokens (Cozy Pillowy Bold-Border Sage & Cream) --- */
+:root {
+  /* Default Theme: Morning Sun (Sage & Cream) */
+  --bg-sage: #B5D3B8;               /* Sage green background from screenshot */
+  --bg-warm: #FAF7F0;               /* Rich eggshell cream surface */
+  --glass-bg: #FAF7F0;              /* Cards styled with rich eggshell cream */
+  --glass-border: #25283D;          /* Bold dark outline stroke */
+  --glass-shadow: 0 8px 0 #25283D;
+  --glass-shadow-hover: 0 12px 0 #25283D;
+
+  /* Accents */
+  --accent-copper: #E8927A;         /* Rose pink accent from progress bar */
+  --accent-gold: #F2C078;           /* Honey warm gold */
+  --accent-lavender: #C7BDE8;       /* Lavender highlight */
+  --accent-sage: #98D8AA;           /* Mint tag green */
+  --accent-rose: #F3A0B4;           /* Warm rose */
+  --accent-apple: #D95B4E;          /* Warning red */
+
+  /* Text - Slate colors locked for legibility */
+  --text-primary: #25283D;         /* High-contrast dark charcoal text */
+  --text-secondary: #4A4E69;       /* Medium slate-brown text */
+  --text-muted: #8E8D9C;           /* Soft gray-brown details */
+  --text-on-accent: #FFFFFF;
+
+  /* Typography */
+  --font-display: 'Lora', Georgia, serif;
+  --font-body: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Custom inputs & elements */
+  --input-bg: #FFFFFF;
+  --input-border: #25283D;
+  --chef-btn-bg: #FFFFFF;
+  --chef-btn-border: #25283D;
+  --bio-bg: #FFFFFF;
+  --jar-bg: rgba(255, 255, 255, 0.45);
+  --jar-border: #25283D;
+  --ingredient-li-bg: #FFFFFF;
+  --ingredient-li-border: #25283D;
+  --step-num-bg: #FFFFFF;
+  --step-num-border: #25283D;
+
+  /* Floating Radii */
+  --radius-lg: 32px;
+  --radius-md: 20px;
+  --radius-sm: 12px;
+  
+  --transition-gentle: all 0.3s ease;
+  --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* --- Dark Theme: Twilight Hearth Overrides --- */
+body.dark-theme {
+  --bg-base: #0F1322;               /* Midnight cozy dark blue background */
+  --bg-warm: #181C30;               /* Dark navy card surface */
+  --glass-bg: #181C30;              /* Cards styled with dark slate navy */
+  --glass-border: rgba(255, 255, 255, 0.35); /* High contrast border for seeability in dark mode */
+  --glass-shadow: 0 8px 0 rgba(0, 0, 0, 0.4);
+  --glass-shadow-hover: 0 12px 0 rgba(0, 0, 0, 0.5);
+
+  /* Highlights */
+  --accent-copper: #FFA885;
+  --accent-gold: #FFD49A;
+  --accent-lavender: #D8B4FE;
+  --accent-sage: #A7F3D0;
+  --accent-rose: #FBCFE8;
+  --accent-apple: #EF4444;
+
+  /* Dark theme text */
+  --text-primary: #FAF9F6;          /* Creamy white for high visibility */
+  --text-secondary: #D1D5DB;        /* Light gray */
+  --text-muted: #B2C0D6;            /* Uplifted twilight steel blue gray for high contrast */
+  --text-on-accent: #0F1322;
+
+  /* Custom inputs & elements */
+  --input-bg: #0F1322;
+  --input-border: rgba(255, 255, 255, 0.35);
+  --chef-btn-bg: #0F1322;
+  --chef-btn-border: rgba(255, 255, 255, 0.35);
+  --bio-bg: #0F1322;
+  --jar-bg: rgba(255, 255, 255, 0.05);
+  --jar-border: rgba(255, 255, 255, 0.35);
+  --ingredient-li-bg: #0F1322;
+  --ingredient-li-border: rgba(255, 255, 255, 0.2);
+  --step-num-bg: #0F1322;
+  --step-num-border: rgba(255, 255, 255, 0.3);
+}
+
+/* --- Dark Theme Typography & Writing Enhancements --- */
+body.dark-theme .form-group label,
+body.dark-theme .chef-selection-group label {
+  color: #B2C0D6; /* Gorgeous bright twilight blue label text */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+body.dark-theme .app-footer {
+  color: #7A89A6; /* Brightened footer text for clear visibility */
+  border-top-color: rgba(255, 255, 255, 0.15);
+}
+
+body.dark-theme #ingredients-input.thought-input::placeholder {
+  color: #7282A0; /* Cozy and highly readable cool twilight placeholder */
+  opacity: 0.75;
+}
+
+body.dark-theme .placeholder-tag {
+  color: #8D9CB0; /* Clear and clean contrast for empty tag helper text */
+}
+
+/* --- Resets & Base Styles --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  max-width: 100vw;
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  line-height: 1.7;
+  min-height: 100vh;
+  background-color: var(--bg-sage);
+  background-image: 
+    radial-gradient(circle, rgba(255, 255, 255, 0.7) 1.2px, transparent 1.8px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.7) 1.8px, transparent 2.2px);
+  background-size: 80px 80px, 120px 120px;
+  background-position: 0 0, 40px 40px;
+  background-attachment: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  transition: background-color 0.5s ease, color 0.3s ease;
+}
+
+@supports (min-height: 100dvh) {
+  body {
+    min-height: 100dvh;
+  }
+}
+
+@media (pointer: coarse) {
+  body {
+    background-attachment: scroll;
+  }
+}
+
+body.dark-theme {
+  background-color: var(--bg-base);
+  background-image: 
+    radial-gradient(circle, rgba(255, 255, 255, 0.18) 1.2px, transparent 1.8px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.18) 1.8px, transparent 2.2px);
+}
+
+/* --- Decorative Floating SVG Daisies (Screenshot style) --- */
+.bg-deco-flower {
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  animation: float-slow 8s ease-in-out infinite alternate;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.06));
+}
+
+.flower-top-left {
+  top: 12%;
+  left: 8%;
+}
+
+.flower-bottom-right {
+  bottom: 12%;
+  right: 8%;
+  animation-delay: 2.5s;
+}
+
+@keyframes float-slow {
+  0% { transform: translateY(0) rotate(0deg); }
+  100% { transform: translateY(-15px) rotate(15deg) scale(1.05); }
+}
+
+/* --- Background Layer: Sunrays (Kept for depth) --- */
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sunray {
+  position: absolute;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transform-origin: top center;
+  animation: ray-pulse 8s ease-in-out infinite alternate;
+}
+
+.sunray-1 { height: 70vh; top: -5%; left: 20%; transform: rotate(-22deg); opacity: 0.3; }
+.sunray-2 { height: 55vh; top: -5%; left: 35%; transform: rotate(-15deg); opacity: 0.2; animation-delay: 3s; }
+.sunray-3 { height: 60vh; top: -5%; left: 50%; transform: rotate(-8deg); opacity: 0.15; animation-delay: 5s; }
+
+@keyframes ray-pulse { 0% { opacity: 0.1; transform: scaleX(0.7) rotate(-15deg); } 100% { opacity: 0.3; transform: scaleX(1.3) rotate(-15deg); } }
+
+/* --- App Container --- */
+.app-container {
+  width: 100%;
+  max-width: 880px;
+  padding: 36px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  z-index: 1;
+  position: relative;
+}
+
+/* --- Header & Title --- */
+.app-header {
+  text-align: center;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.theme-toggle-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--chef-btn-bg);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--glass-border);
+  transition: var(--transition-spring);
+}
+
+.theme-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--glass-border);
+}
+
+.theme-toggle-btn:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+.logo {
+  font-family: var(--font-body);
+  font-size: 2.6rem; /* Slightly larger for premium prominence */
+  font-weight: 800; /* Extra bold for maximum clarity */
+  letter-spacing: -0.01em; /* Snug modern spacing */
+  margin-bottom: 8px;
+  position: relative;
+  display: inline-block;
+  color: #25283D; /* Highly visible high-contrast signature charcoal instead of faded transparent gradient */
+  text-shadow: 2px 2px 0px #FAF7F0, 4px 4px 0px var(--accent-lavender); /* Pillowy 3D shadow matching retro aesthetic */
+  animation: title-float 6s ease-in-out infinite;
+}
+
+.logo span {
+  font-weight: 800;
+  color: var(--accent-copper); /* Highlight "jam" in our signature accent color for distinct branding */
+}
+
+.logo::before, .logo::after {
+  content: '✦';
+  position: absolute;
+  -webkit-text-fill-color: var(--accent-lavender);
+  font-size: 0.75rem;
+  opacity: 0.6;
+  animation: sparkle-pulse 3s ease-in-out infinite;
+}
+
+.logo::before {
+  top: -2px;
+  right: -18px;
+  animation-delay: 0s;
+}
+
+.logo::after {
+  bottom: 0px;
+  left: -16px;
+  animation-delay: 1.5s;
+  font-size: 0.6rem;
+}
+
+@keyframes title-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes title-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes sparkle-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 0.8; transform: scale(1.2); }
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+/* --- State Machine Panels & Cards --- */
+.main-content {
+  width: 100%;
+  position: relative;
+}
+
+.state-card {
+  display: none;
+  background: var(--glass-bg);
+  border: 2.5px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  padding: 32px;
+  width: 100%;
+  animation: slide-fade-in 0.65s var(--transition-gentle) forwards;
+}
+
+.state-card.active {
+  display: block;
+}
+
+@keyframes slide-fade-in {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Panel Header */
+.card-glass-header {
+  text-align: center;
+  margin-bottom: 22px;
+  border-bottom: 2px solid var(--glass-border);
+  padding-bottom: 16px;
+}
+
+.card-glass-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.card-glass-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* --- Generic Utility Classes --- */
+.hidden {
+  display: none !important;
+}
+
+/* --- Recipe Box Controls & Drawer --- */
+.theme-toggle-container {
+  gap: 12px;
+}
