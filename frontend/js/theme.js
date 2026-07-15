@@ -4,8 +4,16 @@ function initTheme() {
     const themeToggle = document.getElementById('theme-toggle');
     if (!themeToggle) return;
 
-    const savedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let savedTheme = null;
+    try {
+        savedTheme = localStorage.getItem('theme');
+    } catch (err) {
+        console.warn('[FridgeJam] Theme preference could not be read:', err);
+    }
+
+    const systemPrefersDark = window.matchMedia
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+        : false;
 
     const setDarkTheme = (isDark) => {
         if (isDark) {
@@ -27,7 +35,11 @@ function initTheme() {
     themeToggle.addEventListener('click', () => {
         const isDark = !document.body.classList.contains('dark-theme');
         setDarkTheme(isDark);
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        try {
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        } catch (err) {
+            console.warn('[FridgeJam] Theme preference could not be saved:', err);
+        }
         queueCloudSync();
         synth.playDialClick();
     });

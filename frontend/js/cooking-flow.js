@@ -85,9 +85,6 @@ function stopCookingAnimation() {
     }
 }
 
-
-// --- Toast Manager ---
-let toastTimeout = null;
 async function startCooking() {
     const isPlannerCook = Boolean(appState.planRecipeHint);
     const isDishMode = appState.cookMode === 'dish' && !isPlannerCook;

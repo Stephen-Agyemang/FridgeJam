@@ -4,17 +4,32 @@
 class KitchenSynth {
     constructor() {
         this.ctx = null;
+        this.disabled = false;
     }
 
     init() {
+        if (this.disabled) return false;
         if (!this.ctx) {
-            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) {
+                this.disabled = true;
+                return false;
+            }
+
+            try {
+                this.ctx = new AudioCtx();
+            } catch (err) {
+                this.disabled = true;
+                console.warn('[FridgeJam] Kitchen sound effects unavailable:', err);
+                return false;
+            }
         }
+        return true;
     }
 
     // Deep retro stove dial click sound
     playDialClick() {
-        this.init();
+        if (!this.init()) return;
         const ctx = this.ctx;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -35,7 +50,7 @@ class KitchenSynth {
 
     // Synthesized gas ignition and sizzle (using white noise)
     playStoveSizzle() {
-        this.init();
+        if (!this.init()) return;
         const ctx = this.ctx;
         
         // Generate white noise buffer
@@ -72,7 +87,7 @@ class KitchenSynth {
 
     // High-end crystal dinner bell chime when food is plated
     playDinnerBell() {
-        this.init();
+        if (!this.init()) return;
         const ctx = this.ctx;
         const now = ctx.currentTime;
         
@@ -102,7 +117,7 @@ class KitchenSynth {
 
     // Cute slide tone for opening Recipe Box
     playDrawerSlide() {
-        this.init();
+        if (!this.init()) return;
         const ctx = this.ctx;
         const now = ctx.currentTime;
         const osc = ctx.createOscillator();

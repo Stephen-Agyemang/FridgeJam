@@ -1,6 +1,29 @@
 /* FridgeJam central event wiring */
 
 function initEvents() {
+    // Header controls should bind before deeper feature setup so they stay usable
+    // even if a lower-priority feature initializer fails.
+    if (DOM.recipeBoxBtn) {
+        DOM.recipeBoxBtn.addEventListener('click', () => {
+            openRecipeBox();
+            synth.playDrawerSlide();
+        });
+    }
+
+    if (DOM.recipeBoxClose) {
+        DOM.recipeBoxClose.addEventListener('click', () => {
+            closeRecipeBox();
+            synth.playDrawerSlide();
+        });
+    }
+
+    if (DOM.recipeBoxBackdrop) {
+        DOM.recipeBoxBackdrop.addEventListener('click', () => {
+            closeRecipeBox();
+            synth.playDrawerSlide();
+        });
+    }
+
     // Natural-Language input listener for real-time tag extraction and jar slips diffing
     if (DOM.ingredientsInput) {
         DOM.ingredientsInput.addEventListener('input', updateInputTextareaAndSync);
@@ -128,28 +151,6 @@ function initEvents() {
             if (DOM.toast) {
                 DOM.toast.classList.add('hidden');
             }
-        });
-    }
-
-    // Recipe Box Drawer Toggle Event
-    if (DOM.recipeBoxBtn) {
-        DOM.recipeBoxBtn.addEventListener('click', () => {
-            synth.playDrawerSlide();
-            openRecipeBox();
-        });
-    }
-
-    if (DOM.recipeBoxClose) {
-        DOM.recipeBoxClose.addEventListener('click', () => {
-            synth.playDrawerSlide();
-            closeRecipeBox();
-        });
-    }
-
-    if (DOM.recipeBoxBackdrop) {
-        DOM.recipeBoxBackdrop.addEventListener('click', () => {
-            synth.playDrawerSlide();
-            closeRecipeBox();
         });
     }
 
