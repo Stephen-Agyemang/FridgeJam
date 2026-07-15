@@ -1,0 +1,117 @@
+/* FridgeJam Entertainment Zone */
+
+/* ═══════════════════════════════════════════
+   ENTERTAINMENT ZONE
+═══════════════════════════════════════════ */
+
+.entertain-zone {
+  width: 100%;
+  max-width: 500px;
+  margin: 16px auto 0;
+  border: 2.5px solid #25283D;
+  border-radius: 18px;
+  background: #FFFDF8;
+  box-shadow: 0 4px 0 #25283D;
+  overflow: visible; /* never clip inner content */
+  transition: opacity 0.4s ease;
+}
+
+[data-theme="dark"] .entertain-zone {
+  background: #1E2238;
+}
+
+/* ── Preference Picker ── */
+.ez-picker {
+  padding: 20px 16px 16px;
+}
+
+.ez-picker-label {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #25283D;
+  text-align: center;
+  margin: 0 0 14px;
+}
+
+[data-theme="dark"] .ez-picker-label { color: #FAF7F0; }
+
+.ez-picker-btns {
+  display: flex;
+  gap: 12px;
+}
+
+.ez-pick-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 10px;
+  background: #FAF7F0;
+  border: 2.5px solid #25283D;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #25283D;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+[data-theme="dark"] .ez-pick-btn { background: #22263F; }
+
+.ez-pick-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 0 #25283D;
+}
+
+.ez-pick-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #25283D;
+}
+
+.ez-pick-icon { font-size: 2rem; line-height: 1; }
+
+.ez-pick-name {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #25283D;
+}
+
+[data-theme="dark"] .ez-pick-name { color: #FAF7F0; }
+
+.ez-pick-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── Shared panel header ── */
+.ez-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px 8px;
+  border-bottom: 2px solid #E8E3D8;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #25283D;
+}
+
+[data-theme="dark"] .ez-panel-header {
+  border-color: #2D3150;
+  color: #FAF7F0;
+}
+
+.ez-switch-btn {
+  background: none;
+  border: 1.5px solid var(--text-muted);
+  border-radius: 8px;
+  padding: 3px 9px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.ez-switch-btn:hover { color: var(--accent-copper); border-color: var(--accent-copper); }

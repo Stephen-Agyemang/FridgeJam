@@ -1,0 +1,171 @@
+/* ── Ready Banner ── */
+.ready-banner {
+  margin: 12px;
+  border: 2.5px solid #25283D;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #FAF1D6 0%, #FFF8E8 100%);
+  box-shadow: 0 4px 0 #25283D;
+  animation: banner-slide-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+}
+
+@keyframes banner-slide-in {
+  0%   { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0);    opacity: 1; }
+}
+
+[data-theme="dark"] .ready-banner {
+  background: linear-gradient(135deg, #2A2020 0%, #1E1A10 100%);
+}
+
+.ready-banner-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 8px;
+}
+
+.ready-icon {
+  font-size: 2.2rem;
+  animation: ready-wiggle 0.6s ease infinite alternate;
+  flex-shrink: 0;
+}
+
+@keyframes ready-wiggle {
+  0%   { transform: rotate(-8deg) scale(1);   }
+  100% { transform: rotate( 8deg) scale(1.1); }
+}
+
+.ready-text { flex: 1; min-width: 120px; }
+
+.ready-text h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  color: #25283D;
+  margin: 0 0 2px;
+}
+
+[data-theme="dark"] .ready-text h3 { color: #FAF7F0; }
+
+.ready-text p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.ready-btn {
+  background: var(--accent-copper);
+  color: #fff;
+  border: 2px solid #25283D;
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #25283D;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ready-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #25283D;
+}
+
+.ready-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+/* Two-button row inside the ready banner */
+.ready-banner-actions {
+  display: flex;
+  gap: 10px;
+  padding: 0 16px 14px;
+}
+
+.ready-banner-actions .ready-btn {
+  flex: 1;
+}
+
+/* "Keep Playing" secondary button */
+.ready-keep-btn {
+  flex: 1;
+  background: #FAF7F0;
+  color: #25283D;
+  border: 2px solid #25283D;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #25283D;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .ready-keep-btn {
+  background: #22263F;
+  color: #FAF7F0;
+}
+
+.ready-keep-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #25283D;
+}
+
+.ready-keep-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+/* Sticky reminder bar (shows after Keep Playing, appended to stove-station) */
+.ready-reminder {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 16px;
+  margin: 12px auto 0;
+  width: 100%;
+  max-width: 500px;
+  background: linear-gradient(90deg, #FAF1D6 0%, #FFF8E8 100%);
+  border: 2px solid #25283D;
+  border-radius: 12px;
+  box-shadow: 0 3px 0 #25283D;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #25283D;
+  animation: banner-slide-in 0.35s ease;
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] .ready-reminder {
+  background: linear-gradient(90deg, #2A2010 0%, #1E1A10 100%);
+  color: #FAF7F0;
+}
+
+.ready-reminder-btn {
+  flex-shrink: 0;
+  background: var(--accent-copper);
+  color: #fff;
+  border: 1.5px solid #25283D;
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #25283D;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.ready-reminder-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #25283D;
+}
