@@ -72,14 +72,18 @@
   background-color: #ffffff;
   padding: 6px;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pdf-photo {
   width: 100%;
-  height: auto;
-  min-height: 100%;
-  object-fit: cover;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
   border-radius: 10px;
+  display: block;
 }
 
 .pdf-narrative-box {
