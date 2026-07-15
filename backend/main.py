@@ -4,7 +4,6 @@ import json
 import os
 import base64
 from functools import lru_cache
-from io import BytesIO
 from typing import Optional
 
 from dotenv import load_dotenv
@@ -541,7 +540,7 @@ async def generate_image(request: Request, body: ImageRequest):
                 print(f"[Imagen] Alternate image_bytes length: {len(image_bytes) if image_bytes else 'None'}")
         
         if not image_bytes:
-            raise ValueError(f"image_bytes is empty or None from Imagen response")
+            raise ValueError("image_bytes is empty or None from Imagen response")
         
         encoded_image = base64.b64encode(image_bytes).decode("utf-8")
         print(f"[Imagen] Successfully encoded image, base64 length: {len(encoded_image)}")
