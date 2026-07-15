@@ -1,0 +1,376 @@
+/* --- App Footer --- */
+/* --- Responsive Details --- */
+@media (max-width: 960px) {
+  .app-container {
+    padding: 20px 12px 40px; /* Snugger mobile padding preventing overflow scroll */
+    gap: 24px;
+    max-width: 100%;
+  }
+
+  .theme-toggle-container {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .theme-toggle-btn {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    gap: 4px;
+  }
+
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .dashboard-layout > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+  
+  .ingredients-label-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .cook-mode-toggle {
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .cook-mode-option {
+    min-height: 44px;
+    padding: 9px 8px;
+    font-size: 0.82rem;
+  }
+  
+  .chef-buttons {
+    gap: 10px; /* tight snug gaps preventing card stretch */
+    width: 100%;
+    justify-content: space-around;
+  }
+  
+  .chef-btn {
+    width: 62px; /* snugger buttons fitting all screens */
+    height: 62px;
+    gap: 2px;
+    box-shadow: 0 3px 0 var(--chef-btn-border);
+  }
+  
+  .chef-emoji {
+    font-size: 1.22rem;
+  }
+  
+  .chef-name-label {
+    font-size: 0.65rem;
+  }
+  
+  .recipe-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .recipe-presentation-panel {
+    max-width: 440px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  
+  .chef-cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 760px) {
+  .chef-selection-group {
+    grid-template-columns: 1fr;
+  }
+
+  .chef-buttons {
+    margin-bottom: 12px;
+  }
+
+  .chef-bio-display {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .state-card {
+    padding: 16px 14px; /* Cozy snug mobile paddings */
+    max-width: 100%;
+  }
+  
+  .logo {
+    font-size: 1.8rem;
+    max-width: 100%;
+  }
+
+  .subtitle {
+    font-size: 0.88rem;
+    max-width: 92%;
+    margin: 0 auto;
+  }
+  
+  .card-glass-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    max-width: 100%;
+  }
+
+  .card-glass-header h2 {
+    font-size: 1.25rem;
+  }
+  
+  .card-glass-header p {
+    font-size: 0.85rem;
+  }
+
+  .chef-bio-display {
+    padding: 10px 14px;
+  }
+  
+  #chef-bio-desc {
+    font-size: 0.82rem;
+  }
+  
+  .ingredients-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .ingredient-input-wrapper {
+    flex-direction: column;
+  }
+
+  .dish-target-input {
+    min-height: 50px;
+    font-size: 0.92rem;
+  }
+
+  .cook-mode-toggle {
+    border-radius: 18px;
+    padding: 4px;
+  }
+
+  .cook-mode-option {
+    gap: 5px;
+    font-size: 0.78rem;
+  }
+
+  #btn-add-ingredient {
+    padding: 14px;
+  }
+
+  .action-btn-container {
+    width: 100%;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 16px 24px;
+  }
+
+  .recipe-right-panel {
+    padding: 20px 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .chef-btn {
+    width: 54px;
+    height: 54px;
+  }
+  .chef-emoji {
+    font-size: 1rem;
+  }
+  .chef-name-label {
+    font-size: 0.58rem;
+  }
+  .chef-buttons {
+    gap: 6px;
+  }
+  .theme-toggle-btn {
+    padding: 5px 8px;
+    font-size: 0.72rem;
+  }
+}
+/* ==========================================================
+   Plated Recipe Modal Overlay (tactile pillowy styling)
+   ========================================================== */
+
+.card-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* no global page scroll on desktop */
+  padding: 20px 24px;
+  background-color: #C5BBE3; /* Cozy lavender background */
+  background-image: radial-gradient(#ffffff 15%, transparent 16%);
+  background-size: 24px 24px; /* sugar sprinkles pattern */
+  transition: opacity 0.3s ease;
+}
+
+@media (max-width: 1100px), (pointer: coarse) {
+  .recipe-container {
+    width: min(100%, 760px);
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    gap: 10px;
+  }
+
+  .card-overlay {
+    display: block;
+    height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: max(12px, env(safe-area-inset-top)) 10px max(18px, env(safe-area-inset-bottom));
+  }
+
+  .card-overlay-content {
+    grid-template-columns: 1fr;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+    border-radius: 22px;
+    animation: none;
+  }
+
+  .recipe-left-panel,
+  .recipe-right-panel {
+    overflow: visible;
+    min-height: 0;
+  }
+
+  .recipe-left-panel {
+    border-right: 0;
+    border-bottom: 2.5px solid #25283D;
+  }
+}
+
+.card-overlay.hidden {
+  display: none !important;
+  opacity: 0;
+}
+
+.card-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: transparent; /* transparent clickable layer */
+  z-index: 1;
+}
+
+.card-overlay-content {
+  position: relative;
+  width: 100%;
+  height: 100%; /* fill the container frame height */
+  display: grid;
+  grid-template-columns: 1fr 1.15fr; /* gorgeous split! */
+  background: #FAF7F0; /* Cream Eggshell */
+  border: 2.5px solid #25283D; /* bold charcoal outline */
+  border-radius: 32px;
+  box-shadow: 0 8px 0 #25283D; /* pillowy tactile shadow */
+  overflow: hidden;
+  z-index: 10;
+  animation: card-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-align: left;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes card-enter {
+  from { opacity: 0; transform: scale(0.92) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Additional Responsive Tweaks for Modal Overlay */
+@media (max-width: 900px) {
+  .recipe-container {
+    height: auto;
+    max-height: none;
+    min-height: 0;
+  }
+
+  .card-overlay {
+    display: block; /* enable vertical block scroll flow on mobile */
+    overflow-y: auto;
+    padding: 16px 10px; /* Snugger mobile padding (down from 40px 16px) preventing scattered layout */
+  }
+  
+  .card-overlay-content {
+    grid-template-columns: 1fr;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow-y: visible;
+    border-radius: 20px; /* Cozy mob outline */
+  }
+  
+  .recipe-left-panel {
+    overflow-y: visible;
+    padding: 12px; /* Snug padding */
+    border-bottom: 2.5px solid #25283D;
+    gap: 12px; /* Cozy stacked gap */
+  }
+  
+  .recipe-right-panel {
+    border-left: none;
+    overflow-y: visible;
+    padding: 20px 16px 28px;
+  }
+
+  .recipe-action-bar {
+    padding: 0;
+  }
+
+  .btn-action-circle {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+  }
+
+  .recipe-action-right {
+    gap: 8px;
+  }
+  
+  .recipe-photo-header {
+    border-radius: 12px;   /* softer on mobile */
+    aspect-ratio: 4 / 3;
+    min-height: 240px;
+    max-height: none;
+    margin: 0;
+    width: 100%;
+    box-shadow: none;
+    border: 2.5px solid #25283D;
+    padding: 0;
+  }
+  
+  .dish-photo, .dish-photo-fallback-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+  }
+  
+  .chef-badge {
+    position: absolute;
+    bottom: 28px;
+    right: 28px;
+    width: auto;
+    margin-top: 0;
+    box-shadow: 0 3px 0 #25283D;
+  }
+}

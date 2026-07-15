@@ -1,0 +1,428 @@
+/* Missing Ingredients Callout */
+.missing-ingredients-callout {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 2px dashed #D4A843;
+  background-color: #FFFBF0;
+  margin-top: 6px;
+  margin-bottom: 2px;
+}
+
+.missing-callout-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.missing-callout-icon {
+  font-size: 1rem;
+}
+
+.missing-callout-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #6B4F1A;
+  font-family: var(--font-body);
+}
+
+.missing-callout-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.missing-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 14px;
+  border: 1.5px solid #D4A843;
+  background-color: #FFF3C4;
+  color: #5A3E0A;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+}
+
+/* Compact Nutrition Bar (Saves massive vertical space) */
+.recipe-nutrition-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+
+.nutrition-bar-title {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #25283D;
+  text-transform: uppercase;
+  margin-right: 2px;
+}
+
+.nutrition-estimate-label {
+  font-size: 0.7rem;
+  font-weight: 400;
+  text-transform: none;
+  opacity: 0.55;
+  letter-spacing: 0;
+}
+
+.recipe-nutrition-bar .nutrition-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 10px;
+  border: 2px solid #25283D;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #25283D;
+  box-shadow: 0 2px 0 #25283D;
+  transition: transform 0.1s ease;
+  cursor: default;
+}
+
+.recipe-nutrition-bar .nutrition-pill:hover {
+  transform: translateY(-1.5px);
+}
+
+.recipe-nutrition-bar .nutrition-pill:nth-child(2) { background-color: #FFF3E0; } /* Calories - Orange */
+.recipe-nutrition-bar .nutrition-pill:nth-child(3) { background-color: #E8F5E9; } /* Protein - Green */
+.recipe-nutrition-bar .nutrition-pill:nth-child(4) { background-color: #E3F2FD; } /* Carbs - Blue */
+.recipe-nutrition-bar .nutrition-pill:nth-child(5) { background-color: #FCE4EC; } /* Fat - Pink */
+
+/* Chef Narrative Speech Bubble */
+.chef-narrative-bubble {
+  position: relative;
+  background: #FAF1D6; /* golden yellow */
+  border: 2.5px solid #25283D;
+  border-radius: 16px;
+  padding: 10px 14px; /* Snugger padding (down from 18px 24px) */
+  margin: 6px 0 2px 0; /* Snugger margins */
+  box-shadow: 0 3px 0 #25283D;
+  color: #4A4E69;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 0.84rem; /* Snugger font size */
+  line-height: 1.45;
+}
+
+/* Small speech bubble tails pointing up */
+.chef-narrative-bubble::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 32px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 12px solid #25283D;
+}
+
+.chef-narrative-bubble::after {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 32px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 12px solid #FAF1D6;
+}
+
+/* Overlapping double-dot eye avatar badge */
+.bubble-avatar-badge {
+  position: absolute;
+  top: -14px;
+  left: 16px;
+  background: #FAF7F0;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+/* Row elements */
+.recipe-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #25283D;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: lowercase;
+}
+
+.dot-bullet {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #25283D;
+}
+
+.dot-bullet.bullet-yellow {
+  background-color: #F2C078;
+}
+
+.dot-bullet.bullet-purple {
+  background-color: #C5BBE3;
+}
+
+/* Have vs Need Ingredient row list layout */
+.ingredients-pills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ingredient-row-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-radius: 20px;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #25283D;
+  box-sizing: border-box;
+  transition: transform 0.15s ease-out;
+}
+
+.ingredient-row-pill.have-style {
+  border: 2px solid #25283D;
+  background: #EEF6F0; /* clean light-green have surface */
+}
+
+.ingredient-row-pill.need-style {
+  border: 2px dashed #25283D;
+  background: #FAF7F0; /* cream need surface */
+}
+
+.ingredient-row-pill:hover {
+  transform: scale(1.015);
+}
+
+.row-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.row-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  text-transform: lowercase;
+  font-family: var(--font-body);
+}
+
+.row-badge.badge-have {
+  border: 2px solid #25283D;
+  background: #B5D3B8;
+  color: #25283D;
+}
+
+.row-badge.badge-need {
+  border: 2px dashed #25283D;
+  background: none;
+  color: #25283D;
+}
+
+/* Preparation Steps */
+.cozy-steps-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0;
+  margin: 0;
+  counter-reset: item;
+}
+
+.cozy-steps-list li {
+  position: relative;
+  padding-left: 42px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: #4A4E69;
+  line-height: 1.6;
+}
+
+.cozy-steps-list li::before {
+  content: counter(item) "";
+  counter-increment: item;
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #FAF7F0;
+  border: 2px solid #25283D;
+  color: #25283D;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Step Timer Button */
+.step-timer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 7px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1.5px solid #25283D;
+  background: transparent;
+  color: #25283D;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.step-timer-btn:hover {
+  background: #E8E4F0;
+}
+
+.step-timer-btn.timer-running {
+  background: #FFF3C4;
+  border-color: #D4A843;
+  color: #5A3E0A;
+  animation: timer-pulse 1.2s ease-in-out infinite;
+}
+
+.step-timer-btn.timer-done {
+  background: #B5D3B8;
+  border-color: #4A8B4F;
+  color: #1A3D1E;
+}
+
+@keyframes timer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
+
+body.dark-theme .step-timer-btn {
+  border-color: #A0B0CC;
+  color: #D0DBF0;
+}
+
+body.dark-theme .step-timer-btn:hover {
+  background: rgba(160,176,204,0.15);
+}
+
+body.dark-theme .step-timer-btn.timer-running {
+  background: rgba(212,168,67,0.2);
+  border-color: #D4A843;
+  color: #FFD97A;
+}
+
+/* Cozy Post-It tip yellow card */
+.recipe-tip-container {
+  background: #FEFCEB !important;
+  border: 2.5px dashed #B48A3D !important;
+  border-radius: var(--radius-md);
+  padding: 10px 14px; /* Snugger padding (down from 20px) */
+  box-shadow: 0 3px 0 #25283D;
+  transform: rotate(-1deg);
+  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  color: #25283D !important;
+  margin: 4px 0;
+  font-size: 0.8rem; /* Snugger text */
+}
+
+.recipe-tip-container:hover {
+  transform: rotate(0deg) scale(1.02);
+  box-shadow: 0 6px 0 #25283D;
+}
+
+.tip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tip-icon {
+  font-size: 1.1rem;
+  color: #8C5E1A !important;
+}
+
+.tip-header h4 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #8C5E1A !important;
+}
+
+.tip-body {
+  font-size: 0.9rem;
+  color: #4A4E69 !important;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Overlay Reset button row */
+.recipe-bottom-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.recipe-bottom-actions .btn-shake {
+  padding: 14px 28px;
+  background: #E8927A;
+  border: 2.5px solid #25283D;
+  border-radius: 20px;
+  color: #FAF7F0;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #25283D;
+  transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.recipe-bottom-actions .btn-shake:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #25283D;
+}
+
+.recipe-bottom-actions .btn-shake:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}

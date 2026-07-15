@@ -1,0 +1,17 @@
+/* Dark theme adjustments */
+body.dark-theme .mp-remove-btn { background: rgba(250, 249, 246, 0.15); }
+body.dark-theme .mp-empty-slot { border-color: rgba(255, 255, 255, 0.2); }
+body.dark-theme .shopping-item { border-color: rgba(255, 255, 255, 0.1); }
+body.dark-theme .mp-cook-confirm {
+  background: var(--bg-warm);
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.3), inset 4px 0 0 #5a50a0;
+}
+body.dark-theme .mp-cook-confirm-label { color: #9d92d8; }
+body.dark-theme .mp-cook-confirm-no:hover { background: rgba(255, 255, 255, 0.06); }
+body.dark-theme .mp-prefs-overlay { background: rgba(10, 14, 24, 0.62); }
+body.dark-theme .mp-prefs-panel { background: var(--bg-warm); border-color: rgba(160, 176, 204, 0.5); box-shadow: 6px 6px 0 rgba(160, 176, 204, 0.3); }
+body.dark-theme .mp-pref-chip { border-color: rgba(160, 176, 204, 0.5); color: #d0dbf0; }
+body.dark-theme .mp-pref-chip:hover { background: rgba(160, 176, 204, 0.12); }
+body.dark-theme .mp-pref-chip.mp-pref-selected { background: #a0b0cc; color: #1a1e2e; box-shadow: 2px 2px 0 rgba(160, 176, 204, 0.4); }
+body.dark-theme .mp-prefs-footer { border-top-color: rgba(255, 255, 255, 0.1); }
+body.dark-theme .mp-prefs-cancel-btn:hover { background: rgba(255, 255, 255, 0.06); }

@@ -1,0 +1,267 @@
+/* FridgeJam Meal Planner */
+
+/* --- Meal Planner Overlay --- */
+.meal-planner-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.meal-planner-overlay.hidden { display: none; }
+
+.meal-planner-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(37, 40, 61, 0.6);
+  backdrop-filter: blur(6px);
+}
+
+.meal-planner-panel {
+  position: relative;
+  z-index: 1;
+  background: var(--bg-warm);
+  border: 2.5px solid var(--glass-border);
+  box-shadow: 8px 8px 0 var(--glass-border);
+  border-radius: var(--radius-lg);
+  width: min(1000px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* allows confirm banner to anchor to the bottom of this panel */
+  isolation: isolate;
+}
+
+.meal-planner-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px 14px;
+  border-bottom: 2.5px solid var(--glass-border);
+  flex-wrap: nowrap;
+}
+
+.meal-planner-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meal-planner-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.mp-suggest-btn {
+  padding: 9px 18px;
+  background: var(--accent-lavender);
+  border: 2.5px solid var(--glass-border);
+  box-shadow: 3px 3px 0 var(--glass-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-spring);
+  white-space: nowrap;
+}
+.mp-suggest-btn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--glass-border);
+}
+.mp-suggest-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.mp-clear-btn {
+  padding: 9px 16px;
+  background: none;
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-gentle);
+  white-space: nowrap;
+}
+.mp-clear-btn:hover { background: var(--accent-rose); color: #fff; border-color: var(--accent-rose); }
+
+.meal-planner-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: 2px solid var(--glass-border);
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  line-height: 1;
+}
+.meal-planner-close:hover { background: var(--accent-rose); color: #fff; border-color: var(--accent-rose); }
+
+/* Mobile: allow header to wrap so nothing gets squashed */
+@media (max-width: 580px) {
+  .meal-planner-header {
+    flex-wrap: wrap;
+    padding: 14px 16px 12px;
+  }
+  .meal-planner-header h2 {
+    flex-basis: 100%;
+    white-space: normal;
+  }
+  .meal-planner-header-actions {
+    flex: 1;
+  }
+}
+
+.meal-planner-hint {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+  padding: 8px 24px 0;
+}
+
+.meal-planner-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  padding: 16px 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+@media (max-width: 720px) {
+  .meal-planner-grid {
+    grid-template-columns: 1fr;
+    padding: 16px 18px 28px;
+    gap: 14px;
+  }
+
+  .meal-planner-panel {
+    width: 100%;
+    max-height: 96dvh;
+    border-radius: var(--radius-md);
+  }
+
+  .meal-planner-day-col {
+    min-height: 0;
+  }
+
+  .mp-meal-card {
+    flex: none;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .mp-ai-meal-card {
+    overflow: visible;
+    min-height: 0;
+  }
+
+  .mp-meal-info {
+    flex: none;
+    padding: 12px 14px;
+    gap: 6px;
+  }
+
+  .mp-meal-title {
+    font-size: 0.94rem;
+  }
+
+  .mp-meal-desc {
+    font-size: 0.84rem;
+    -webkit-line-clamp: 3;
+  }
+
+  .mp-meal-time {
+    margin-top: 6px;
+    font-size: 0.8rem;
+  }
+
+  .mp-ai-meal-card .mp-meal-time {
+    margin-top: 2px;
+  }
+
+  .mp-cook-btn {
+    width: 100%;
+    margin-top: 8px;
+    min-height: 44px;
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    align-self: stretch;
+  }
+
+  .mp-meal-thumb {
+    height: 64px;
+  }
+
+  .mp-ai-meal-card {
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 580px) {
+  .meal-planner-overlay {
+    align-items: stretch;
+    padding: 8px;
+    min-height: 100dvh;
+  }
+
+  .meal-planner-panel {
+    height: calc(100dvh - 16px);
+    max-height: calc(100dvh - 16px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .meal-planner-hint {
+    padding: 12px 18px 0;
+    font-size: 0.82rem;
+  }
+
+  .meal-planner-grid {
+    padding: 14px 14px 92px;
+    min-height: 0;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .meal-planner-day-col {
+    gap: 8px;
+    min-height: 0;
+  }
+
+  .mp-meal-emoji {
+    padding: 10px 0 2px;
+    font-size: 1.55rem;
+  }
+
+  .mp-ai-meal-card .mp-meal-desc {
+    -webkit-line-clamp: 2;
+  }
+
+  .mp-ai-meal-card .mp-meal-info {
+    padding: 10px 14px 16px;
+  }
+}
+

@@ -1,0 +1,351 @@
+.meal-planner-day-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 180px;
+}
+
+.mp-day-label {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  text-align: center;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--glass-border);
+}
+
+.mp-meal-card {
+  background: var(--glass-bg);
+  border: 2px solid var(--glass-border);
+  box-shadow: 3px 3px 0 var(--glass-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
+}
+
+.mp-ai-meal-card {
+  min-height: auto;
+  overflow: visible;
+  flex: 0 0 auto;
+}
+
+.mp-meal-thumb {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border-bottom: 2px solid var(--glass-border);
+}
+
+.mp-meal-emoji {
+  font-size: 1.8rem;
+  text-align: center;
+  padding: 10px 0 4px;
+}
+
+.mp-meal-info {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.mp-ai-meal-card .mp-meal-info {
+  min-height: 0;
+  flex: 0 0 auto;
+}
+
+.mp-meal-title {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.mp-meal-desc {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mp-meal-time {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  margin-top: auto;
+}
+
+.mp-ai-meal-card .mp-meal-time {
+  margin-top: 4px;
+}
+
+.mp-remove-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(37, 40, 61, 0.7);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.mp-meal-card:hover .mp-remove-btn { opacity: 1; }
+
+/* Touch devices: remove button is inaccessible at opacity 0 (no hover) — always show it */
+@media (hover: none) {
+  .mp-remove-btn { opacity: 1; }
+}
+
+.mp-empty-slot {
+  border: 2.5px dashed rgba(37, 40, 61, 0.3);
+  border-radius: var(--radius-md);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mp-add-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 16px 8px;
+  border-radius: var(--radius-md);
+  transition: background 0.2s;
+  width: 100%;
+}
+.mp-add-btn:hover { background: rgba(181, 211, 184, 0.25); }
+
+.mp-add-icon {
+  font-size: 1.6rem;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.mp-add-text {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* --- Meal Day Picker --- */
+.meal-day-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.meal-day-picker.hidden { display: none; }
+
+.meal-day-picker-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(37, 40, 61, 0.4);
+}
+
+.meal-day-picker-panel {
+  position: relative;
+  z-index: 1;
+  background: var(--bg-warm);
+  border: 2.5px solid var(--glass-border);
+  box-shadow: 6px 6px 0 var(--glass-border);
+  border-radius: var(--radius-lg);
+  width: min(380px, 92vw);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.meal-day-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 12px;
+  border-bottom: 2px solid var(--glass-border);
+}
+
+.meal-day-picker-header h4 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.meal-day-picker-close {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.meal-day-picker-close:hover { background: var(--accent-rose); color: #fff; }
+
+.meal-day-picker-list {
+  overflow-y: auto;
+  padding: 10px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mp-picker-empty {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 20px 0;
+}
+
+.mp-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--glass-bg);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  text-align: left;
+  transition: var(--transition-gentle);
+}
+.mp-picker-item:hover {
+  background: var(--accent-sage);
+  transform: translateX(3px);
+}
+
+.mp-picker-thumb {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1.5px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+.mp-picker-emoji { font-size: 1.4rem; flex-shrink: 0; }
+.mp-picker-name { font-weight: 600; }
+
+/* Cook-this action inside AI planner cards. Kept inside .mp-meal-info so it
+   cannot be clipped by card footer/height changes on mobile. */
+.mp-cook-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  gap: 6px;
+  width: auto;
+  padding: 8px 14px;
+  background: var(--accent-lavender);
+  border: 2px solid var(--glass-border);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  transition: background 0.18s ease, letter-spacing 0.15s ease;
+  margin-top: 6px;
+  flex-shrink: 0;
+  box-shadow: 2px 2px 0 var(--glass-border);
+  min-height: 38px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.mp-cook-btn:hover {
+  background: #b5a8dc;
+  letter-spacing: 0.04em;
+}
+.mp-cook-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+body.dark-theme .mp-cook-btn { background: #4a4275; color: #e8e4f8; }
+body.dark-theme .mp-cook-btn:hover { background: #5a528a; }
+
+/* Final mobile planner sizing override.
+   This lives after the base card rules so the desktop flex:1 card sizing cannot
+   collapse mobile AI cards and make the next day overlap them. */
+@media (max-width: 720px) {
+  .meal-planner-grid {
+    grid-auto-rows: max-content;
+    align-items: start;
+  }
+
+  .meal-planner-day-col {
+    min-height: 0;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mp-empty-slot,
+  .mp-meal-card,
+  .mp-ai-meal-card {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 0;
+  }
+
+  .mp-ai-meal-card {
+    overflow: hidden;
+  }
+
+  .mp-meal-info,
+  .mp-ai-meal-card .mp-meal-info {
+    flex: 0 0 auto;
+    min-height: 0;
+  }
+
+  .mp-ai-meal-card .mp-meal-time {
+    margin-top: 2px;
+  }
+
+  .mp-cook-btn {
+    position: static;
+    align-self: stretch;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 8px;
+  }
+}
+

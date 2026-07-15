@@ -1,0 +1,151 @@
+/* Margin Ornaments float specs (Centered relative to sheet) */
+.margin-deco {
+  position: fixed;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes float-slow-cloud {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.02); }
+}
+
+@keyframes float-slow-pencil {
+  0%, 100% { transform: translateY(0) rotate(45deg); }
+  50% { transform: translateY(-6px) rotate(43deg); }
+}
+
+@keyframes float-slow-star {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+@keyframes float-slow-sparkle {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-7px) scale(1.08); }
+}
+
+.cloud-deco {
+  top: 15%;
+  left: calc(50% - 460px);
+  animation: float-slow-cloud 6s ease-in-out infinite;
+}
+
+.pencil-deco {
+  top: 12%;
+  right: calc(50% - 450px);
+  animation: float-slow-pencil 5s ease-in-out infinite;
+}
+
+.star-deco {
+  bottom: 20%;
+  left: calc(50% - 440px);
+  animation: float-slow-star 5.5s ease-in-out infinite;
+}
+
+.sparkle-deco {
+  bottom: 25%;
+  right: calc(50% - 430px);
+  animation: float-slow-sparkle 4.5s ease-in-out infinite;
+}
+
+@media (max-width: 1000px) {
+  .margin-deco {
+    display: none !important;
+  }
+}
+
+/* --- Toast Notification (Pillowy Overlay) --- */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: var(--glass-bg);
+  border: 2.5px solid var(--glass-border);
+  color: var(--text-primary);
+  padding: 12px 24px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: var(--glass-shadow);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: opacity 0.3s var(--transition-gentle);
+}
+
+.recipe-tip-container:hover {
+  transform: rotate(0deg) scale(1.02);
+  box-shadow: 0 6px 0 var(--glass-border);
+}
+
+.tip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tip-icon {
+  font-size: 1.1rem;
+  color: #8C5E1A !important;
+}
+
+.tip-header h4 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #8C5E1A !important; /* Locked warm brown title */
+}
+
+.tip-body {
+  font-size: 0.9rem;
+  color: #4A4E69 !important; /* Locked slate-brown text */
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* --- Toast Notification (Pillowy Overlay) --- */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: var(--glass-bg);
+  border: 2px solid var(--glass-border);
+  color: var(--text-primary);
+  padding: 12px 24px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: var(--glass-shadow);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: opacity 0.3s var(--transition-gentle);
+}
+
+.toast.hidden {
+  display: none !important;
+  opacity: 0;
+}
+
+.toast-text {
+  flex: 1;
+}
+
+.toast-dismiss {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: var(--transition-gentle);
+}
+
+.toast-dismiss:hover {
+  color: var(--text-primary);
+}
