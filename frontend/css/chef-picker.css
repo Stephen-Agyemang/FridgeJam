@@ -1,0 +1,197 @@
+/* --- Chef Selection Picker --- */
+.chef-selection-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 32px;
+}
+
+.chef-selection-group > label {
+  grid-column: 1 / -1;
+}
+
+.chef-buttons {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+.chef-btn {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 2px solid var(--chef-btn-border);
+  background: var(--chef-btn-bg);
+  box-shadow: 0 4px 0 var(--chef-btn-border);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: var(--transition-spring);
+  outline: none;
+}
+
+.chef-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--chef-btn-border);
+  background: var(--chef-btn-bg);
+}
+
+.chef-btn.selected, .chef-btn[aria-checked="true"] {
+  background: var(--accent-copper);
+  border-color: var(--chef-btn-border);
+  box-shadow: 0 4px 0 var(--chef-btn-border);
+  transform: translateY(0);
+}
+
+.chef-btn.selected .chef-name-label, .chef-btn[aria-checked="true"] .chef-name-label {
+  color: var(--text-on-accent);
+}
+
+body.dark-theme .chef-btn:not(.selected) .chef-name-label {
+  color: #FAF9F6; /* high contrast cream color for visibility */
+  opacity: 0.85;
+}
+
+.chef-btn:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+.chef-emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.chef-name-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+/* Dynamic Chef Bio Glass Box */
+.chef-bio-display {
+  background: var(--bio-bg);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  margin-top: 4px;
+  text-align: center;
+  box-shadow: var(--glass-shadow);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  will-change: transform, opacity;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.chef-bio-display.fade-in {
+  animation: fade-in 0.4s var(--transition-gentle) forwards;
+}
+
+#chef-bio-name {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+#chef-bio-role {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--accent-copper);
+  margin-bottom: 8px;
+}
+
+#chef-bio-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* --- Cook Dial Button --- */
+.action-btn-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 48px;
+  background: var(--accent-copper);
+  color: #FAF7F0;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border: 2.5px solid var(--glass-border);
+  border-radius: 24px;
+  cursor: pointer;
+  box-shadow: 0 5px 0 var(--glass-border);
+  transition: var(--transition-spring);
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--glass-border);
+}
+
+.btn-primary:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+.btn-primary:disabled {
+  background: #C8C6D4;
+  color: rgba(37, 40, 61, 0.35);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 3px 0 rgba(37, 40, 61, 0.2);
+  border-color: rgba(37, 40, 61, 0.3);
+}
+
+.btn-icon {
+  font-size: 1.1rem;
+  transition: transform 0.35s ease;
+}
+
+.btn-primary:hover .btn-icon {
+  animation: spin-sizzle 3s linear infinite;
+}
+
+@keyframes spin-sizzle {
+  0% { transform: rotate(0); }
+  100% { transform: rotate(360deg); }
+}
+
+.app-footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  padding-top: 16px;
+  border-top: 2px solid var(--glass-border);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+

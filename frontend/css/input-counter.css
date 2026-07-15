@@ -1,0 +1,268 @@
+/* FridgeJam input workbench, ingredient jar, cook mode, and chef picker */
+
+/* --- STEP 1: Interactive Counter Inputs --- */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+  gap: 28px;
+  align-items: start;
+}
+
+.ingredients-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label, .chef-selection-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.cook-mode-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 5px;
+  margin-bottom: 18px;
+  background: rgba(199, 189, 232, 0.18);
+  border: 2px solid var(--glass-border);
+  border-radius: 22px;
+  box-shadow: inset 0 0 0 1px rgba(37, 40, 61, 0.04);
+}
+
+.cook-mode-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 17px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+}
+
+.cook-mode-option:hover {
+  transform: translateY(-1px);
+}
+
+.cook-mode-option.active {
+  background: #C7BDE8;
+  color: #25283D;
+  box-shadow: 0 4px 0 #25283D;
+}
+
+.cook-mode-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.dish-target-group {
+  margin-bottom: 14px;
+}
+
+.dish-target-input {
+  width: 100%;
+  min-height: 54px;
+  padding: 13px 18px;
+  background: var(--input-bg);
+  border: 2px solid var(--input-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 0 var(--input-border);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  transition: var(--transition-gentle);
+}
+
+.dish-target-input:focus {
+  box-shadow: 0 6px 0 var(--input-border);
+}
+
+.dish-mode-hidden {
+  display: none !important;
+}
+
+.ingredient-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+  position: relative;
+}
+
+#ingredients-input.thought-input {
+  width: 100%;
+  min-height: 96px;
+  padding: 14px 18px;
+  background: var(--input-bg);
+  border: 2px solid var(--input-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-primary);
+  line-height: 1.7;
+  resize: vertical;
+  transition: var(--transition-gentle);
+  box-shadow: 0 4px 0 var(--input-border);
+}
+
+#ingredients-input.thought-input:focus {
+  outline: none;
+  border-color: var(--input-border);
+  background: var(--input-bg);
+  box-shadow: 0 6px 0 var(--input-border);
+}
+
+.char-count {
+  display: block;
+  text-align: right;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  opacity: 0.8;
+  transition: color 0.3s ease;
+}
+
+.char-count.warning {
+  color: var(--accent-copper);
+  font-weight: 500;
+}
+
+.char-count.danger {
+  color: var(--accent-apple);
+  font-weight: 600;
+}
+
+/* Selected Ingredient Tag Pool */
+.ingredients-pool {
+  background: var(--input-bg);
+  border: 2px dashed var(--input-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 80px;
+  align-content: flex-start;
+}
+
+.placeholder-tag {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  align-self: center;
+  width: 100%;
+  text-align: center;
+  font-style: italic;
+}
+
+.ingredient-tag {
+  background: var(--glass-bg);
+  border: 2px solid var(--glass-border);
+  color: var(--text-primary);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 3px 0 var(--glass-border);
+  animation: scale-in-tag 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transition: var(--transition-gentle);
+}
+
+.ingredient-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 var(--glass-border);
+}
+
+.btn-tag-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-gentle);
+}
+
+.btn-tag-remove:hover {
+  color: var(--accent-apple);
+  transform: scale(1.2);
+}
+
+/* Expiry-First Mode — expiring ingredient chip */
+.ingredient-tag.expiring {
+  border-color: #D4782A;
+  background: #FFF4E6;
+  box-shadow: 0 3px 0 #D4782A;
+}
+body.dark-theme .ingredient-tag.expiring {
+  border-color: #E8913A;
+  background: #2A1F10;
+  box-shadow: 0 3px 0 #E8913A;
+}
+
+.btn-tag-expiry {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.4;
+  transition: var(--transition-gentle);
+  padding: 0;
+}
+.btn-tag-expiry:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+.ingredient-tag.expiring .btn-tag-expiry {
+  opacity: 1;
+}
+
+/* Expiry-First hint label */
+.expiry-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 4px;
+  display: none;
+}
+.expiry-hint.visible {
+  display: block;
+}
+
+@keyframes scale-in-tag {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
