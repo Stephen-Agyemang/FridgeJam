@@ -1,0 +1,69 @@
+/* --- Fridge Photo Scanner & Glassmorphic Scanner Overlay --- */
+.scan-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-scan-photo {
+  background: #FAF7F0; /* cozy eggshell */
+  border: 2px solid #25283D;
+  border-radius: 12px;
+  padding: 5px 14px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #25283D;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #25283D;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-scan-photo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #25283D;
+}
+
+.btn-scan-photo:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #25283D;
+}
+
+body.dark-theme .btn-scan-photo {
+  background: #181C30;
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #FAF9F6;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.4);
+}
+
+body.dark-theme .btn-scan-photo:hover {
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+}
+
+body.dark-theme .btn-scan-photo:active {
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 960px) {
+  .scan-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 10px;
+  }
+
+  .btn-scan-photo {
+    justify-content: center;
+    min-height: 44px;
+    width: 100%;
+    padding: 9px 10px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}

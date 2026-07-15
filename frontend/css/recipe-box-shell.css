@@ -1,0 +1,258 @@
+/* FridgeJam Recipe Box drawer */
+
+.recipe-box-btn {
+  background: #EEF6F0 !important; /* Soft green badge cream */
+  border-color: #25283D !important;
+}
+
+.recipe-box-btn:hover {
+  background: #FAF7F0 !important;
+}
+
+/* Dark Theme Overrides for Recipe Box Button to guarantee beautiful contrast & perfect theme symmetry */
+body.dark-theme .recipe-box-btn {
+  background: var(--chef-btn-bg) !important;
+  border-color: var(--glass-border) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 4px 0 var(--glass-border) !important;
+}
+
+body.dark-theme .recipe-box-btn:hover {
+  background: var(--glass-bg) !important;
+  box-shadow: 0 6px 0 var(--glass-border) !important;
+}
+
+/* Backdrop */
+.recipe-box-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(37, 40, 61, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 998;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.recipe-box-backdrop.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Drawer */
+.recipe-box-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 520px;
+  max-width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  background: #FAF7F0;
+  border-left: 3.5px solid #25283D;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: -8px 0 0 rgba(37, 40, 61, 0.15);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s ease;
+  transform: translateX(100%);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.recipe-box-drawer.open {
+  transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.recipe-box-drawer.resizing {
+  transition: none !important;
+  user-select: none;
+}
+
+body.resizing-drawer,
+body.resizing-drawer * {
+  cursor: ew-resize !important;
+  user-select: none !important;
+}
+
+/* Drawer Resizing Handle */
+.recipe-box-resize-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 1000;
+  transform: translateX(-50%); /* center it on the boundary border */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  touch-action: none;
+}
+
+.recipe-box-resize-line {
+  width: 4px;
+  height: 60px;
+  background: #25283D;
+  border: 1px solid #FAF7F0;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.recipe-box-resize-handle:hover .recipe-box-resize-line,
+.recipe-box-drawer.resizing .recipe-box-resize-line {
+  opacity: 0.7;
+  transform: scaleY(1.25);
+}
+
+.recipe-box-resize-handle:active .recipe-box-resize-line {
+  opacity: 1;
+  background: var(--accent-copper);
+}
+
+[data-theme="dark"] .recipe-box-resize-line {
+  background: #FAF7F0;
+  border-color: #25283D;
+}
+
+/* Dark theme support for drawer background */
+[data-theme="dark"] .recipe-box-drawer {
+  background: #181C30;
+  border-left: 3.5px solid #25283D;
+}
+
+.recipe-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  padding-bottom: 12px;
+}
+
+.recipe-box-heading {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #25283D;
+  margin: 0;
+}
+
+[data-theme="dark"] .recipe-box-heading {
+  color: #FAF7F0;
+}
+
+.recipe-box-close {
+  background: #FAF7F0;
+  border: 2px solid #25283D;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #25283D;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 0 #25283D;
+  transition: var(--transition-spring);
+}
+
+[data-theme="dark"] .recipe-box-close {
+  background: #22263F;
+  color: #FAF7F0;
+  border-color: #25283D;
+}
+
+.recipe-box-close:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #25283D;
+}
+
+.recipe-box-close:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.recipe-box-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 24px;
+  margin-bottom: 16px;
+}
+
+.recipe-box-divider-line {
+  flex: 1;
+  height: 2px;
+  background: #25283D;
+}
+
+[data-theme="dark"] .recipe-box-divider-line {
+  background: var(--glass-border);
+}
+
+.recipe-box-divider-sun {
+  font-size: 1.1rem;
+  animation: spin-soft 20s linear infinite;
+  display: inline-block;
+}
+
+.recipe-box-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 20px 140px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  /* Smooth scroll so accordion expansion feels natural */
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom Scrollbar for Recipe Box */
+.recipe-box-list::-webkit-scrollbar {
+  width: 8px;
+}
+.recipe-box-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.recipe-box-list::-webkit-scrollbar-thumb {
+  background: #25283D;
+  border-radius: 4px;
+}
+
+/* Empty State */
+.recipe-box-empty {
+  text-align: center;
+  padding: 48px 16px;
+  font-family: var(--font-body);
+  color: #25283D;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .recipe-box-empty {
+  color: #FAF7F0;
+}
+
+.recipe-box-empty .empty-sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 8px;
+}

@@ -1,0 +1,138 @@
+/* FridgeJam scan and camera styles */
+
+/* ── Camera Modal ───────────────────────────────────────────────────────── */
+.camera-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(0,0,0,0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.camera-modal.hidden { display: none; }
+
+.camera-modal-inner {
+  background: #FAF7F0;
+  border-radius: 20px;
+  border: 3px solid #25283D;
+  padding: 20px;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+body.dark-theme .camera-modal-inner {
+  background: #1E2235;
+  border-color: #A0B0CC;
+}
+
+.camera-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.camera-modal-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.camera-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.camera-preview-wrap {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 4/3;
+}
+
+.camera-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Corner brackets overlay on camera preview */
+.camera-corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: #FAF7F0;
+  border-style: solid;
+  opacity: 0.85;
+}
+.camera-corner-tl { top: 10px; left: 10px; border-width: 3px 0 0 3px; }
+.camera-corner-tr { top: 10px; right: 10px; border-width: 3px 3px 0 0; }
+.camera-corner-bl { bottom: 10px; left: 10px; border-width: 0 0 3px 3px; }
+.camera-corner-br { bottom: 10px; right: 10px; border-width: 0 3px 3px 0; }
+
+.camera-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.camera-capture-btn {
+  padding: 10px 28px;
+  background: #25283D;
+  color: #FAF7F0;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.1s;
+}
+
+.camera-capture-btn:hover { opacity: 0.88; transform: scale(1.03); }
+
+.camera-torch-btn {
+  padding: 8px 16px;
+  background: transparent;
+  border: 2px solid #25283D;
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  color: #25283D;
+  transition: background 0.15s;
+}
+
+.camera-torch-btn.torch-active {
+  background: #FFF3C4;
+  border-color: #D4A843;
+  color: #5A3E0A;
+}
+
+.camera-upload-fallback {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: center;
+  padding: 0;
+}

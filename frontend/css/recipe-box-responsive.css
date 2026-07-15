@@ -1,0 +1,6 @@
+@media (max-width: 500px) {
+  .recipe-box-drawer {
+    width: 100%;
+    border-left: none;
+  }
+}

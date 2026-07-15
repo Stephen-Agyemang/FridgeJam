@@ -1,0 +1,188 @@
+/* Accordion wrapper */
+.recipe-box-item {
+  display: flex;
+  flex-direction: column;
+  border: 2.5px solid #25283D;
+  border-radius: var(--radius-sm);
+  /* No overflow:hidden here — lets expand panel grow and list scroll */
+  box-shadow: 0 4px 0 #25283D;
+  transition: box-shadow 0.2s ease;
+}
+
+.recipe-box-item .recipe-box-card {
+  border: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  box-shadow: none;
+  margin: 0;
+  transition: background 0.15s ease;
+}
+
+.recipe-box-item .recipe-box-card:hover {
+  transform: none;
+  box-shadow: none;
+  background: #F0EDE4;
+}
+
+[data-theme="dark"] .recipe-box-item .recipe-box-card:hover {
+  background: #2A2F50;
+}
+
+/* Chevron indicator */
+.recipe-box-card-chevron {
+  font-size: 1rem;
+  color: var(--text-muted);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+  margin-right: 4px;
+  user-select: none;
+}
+
+.rbe-open .recipe-box-card-chevron {
+  transform: rotate(180deg);
+}
+
+/* Expandable panel */
+.recipe-box-expand {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #FFFDF8;
+  border-top: 0 solid #25283D;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+[data-theme="dark"] .recipe-box-expand {
+  background: #1E2238;
+}
+
+/* .rbe-open is no longer used — JS sets inline styles directly */
+
+.rbe-inner {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Hero image in expand panel */
+.rbe-hero {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #25283D;
+}
+
+/* Section title */
+.rbe-section-title {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-copper);
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Ingredients list */
+.rbe-ingredients-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rbe-ingredient {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #25283D;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+[data-theme="dark"] .rbe-ingredient {
+  color: #FAF7F0;
+}
+
+.rbe-have {
+  background: rgba(92, 160, 98, 0.12);
+}
+
+.rbe-need {
+  background: rgba(232, 146, 122, 0.12);
+}
+
+.rbe-ing-dot {
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Steps list */
+.rbe-steps-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rbe-step {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.82rem;
+  color: #25283D;
+  line-height: 1.45;
+}
+
+[data-theme="dark"] .rbe-step {
+  color: #FAF7F0;
+}
+
+.rbe-step-num {
+  background: var(--accent-copper);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.7rem;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Cook This CTA */
+.rbe-cook-btn {
+  background: var(--accent-copper);
+  color: #fff;
+  border: 2px solid #25283D;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #25283D;
+  transition: var(--transition-spring);
+  text-align: center;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.rbe-cook-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #25283D;
+}
+
+.rbe-cook-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
