@@ -28,6 +28,14 @@ This repository features a fully responsive, mobile-first retro-cozy design, dyn
 
 ---
 
+## 👋 Project & Authorship
+
+FridgeJam is an original portfolio project created and maintained by **Stephen Agyemang** for the **GDG Coding Jam (Track 4)**. The repository documents the design and development of the project; its Git history provides the development timeline.
+
+If you reuse or build on the code, please preserve the copyright and license notice required by the MIT License. See [NOTICE.md](NOTICE.md) for project attribution, branding guidance, and third-party acknowledgements.
+
+---
+
 <details>
 <summary>🛠️ Local Developer Setup, Architecture & Deployment Manual</summary>
 
@@ -151,3 +159,12 @@ FridgeJam keeps you entertained while your AI meal is cooking with two highly co
 1. **Dynamic Skillet Game (Progressive Difficulty + Ranked Leaderboard)**: Catch falling ingredients in your skillet! The game speeds up the longer you play—the spawning rate accelerates down to `450ms` and falling items speed up, progressing through **Cozy 🥗**, **Simmering ⏱️**, **Spicy! 🌶️**, and **CHEF MODE! ⚡🔥** stages. Ranked scoring locks at your 5th miss, and you can submit your run to a **Firestore-backed global leaderboard** (top catches) under a nickname.
 2. **Gemini Joke Reviewer**: After reading three food puns, the chef challenges you to tell a joke back! It passes your joke to a Gemini API endpoint (`/api/evaluate-joke`) to evaluate it in real-time, giving funny laughs or blunt-but-playful reactions in your active chef's persona accompanied by custom synth beeps and click sounds.
 
+---
+
+## 📜 License & Branding
+
+The FridgeJam source code is available under the [MIT License](LICENSE).
+
+The MIT License grants broad permission to use, modify, distribute, and sell copies of the software, provided its copyright and permission notices are retained. It does **not** grant permission to use the **FridgeJam** name, identity, or branding in a way that suggests an unofficial fork or service is the original project or is endorsed by Stephen Agyemang.
+
+Forks are welcome. Please give modified versions a distinct name and clearly identify your changes.
