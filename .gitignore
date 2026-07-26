@@ -23,6 +23,9 @@ Thumbs.db
 *.swp
 *.swo
 
+# Claude Code local tooling (personal, not part of the project)
+.claude/
+
 *BRIEF.md
 IDEAS.md
 
