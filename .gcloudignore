@@ -1,0 +1,57 @@
+# Controls what `gcloud run deploy --source .` uploads to Cloud Build.
+#
+# This is a separate layer from .dockerignore: this file decides what leaves
+# your machine, .dockerignore decides what lands in the image. Anything the
+# build needs must survive BOTH — so Dockerfile, .dockerignore, backend/ and
+# frontend/ are deliberately never excluded here.
+#
+# Note: the presence of this file disables gcloud's fallback of deriving
+# exclusions from .gitignore, so every rule below is stated explicitly.
+
+# Secrets — must never be uploaded (Cloud Run injects these at runtime)
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.*
+!**/.env.example
+frontend/firebase-config.js
+
+# Version control & CI (not part of the build context)
+.git
+.gitignore
+.github
+
+# Python virtualenvs & caches
+.venv/
+venv/
+env/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ruff_cache/
+.pytest_cache/
+
+# Dev-only tooling — the production image installs requirements.txt only
+backend/tests
+backend/requirements-dev.txt
+
+# Firebase deploy config & cache (used by `firebase deploy`, not by the container)
+.firebase/
+.firebaserc
+firebase.json
+firestore.rules
+*firebase-debug.log
+
+# Local notes, personal tooling & non-runtime assets (submission-assets alone is ~110 MB of video)
+.claude/
+BRIEF.md
+IDEAS.md
+scratch/
+submission-assets/
+reference/
+
+# OS junk
+**/.DS_Store
+Thumbs.db
