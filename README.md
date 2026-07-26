@@ -32,7 +32,7 @@ This repository features a fully responsive, mobile-first retro-cozy design, dyn
 
 FridgeJam is an original portfolio project created and maintained by **Stephen Agyemang** for the **GDG Coding Jam (Track 4)**. The repository documents the design and development of the project; its Git history provides the development timeline.
 
-If you reuse or build on the code, please preserve the copyright and license notice required by the MIT License. See [NOTICE.md](NOTICE.md) for project attribution, branding guidance, and third-party acknowledgements.
+Reuse of the code is subject to the MIT License, including its requirement that the copyright and permission notices be retained. See [NOTICE.md](NOTICE.md) for project attribution, branding guidance, and third-party acknowledgements.
 
 ---
 
@@ -167,4 +167,4 @@ The FridgeJam source code is available under the [MIT License](LICENSE).
 
 The MIT License grants broad permission to use, modify, distribute, and sell copies of the software, provided its copyright and permission notices are retained. It does **not** grant permission to use the **FridgeJam** name, identity, or branding in a way that suggests an unofficial fork or service is the original project or is endorsed by Stephen Agyemang.
 
-Forks are welcome. Please give modified versions a distinct name and clearly identify your changes.
+Any modified or derivative version must carry a distinct name and project identity, must clearly identify its changes, and must not present itself as the original FridgeJam or as endorsed by Stephen Agyemang.

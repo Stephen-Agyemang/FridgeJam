@@ -14,11 +14,11 @@ The MIT License requires its copyright and permission notices to be included in 
 
 The MIT License applies to the software, but does not grant trademark rights or permission to represent a modified copy as the original FridgeJam project.
 
-You may make and distribute forks under the MIT License. When doing so, please:
+Any fork, modified copy, or derivative distribution must:
 
 - use a distinct name and project identity;
-- state that the project is derived from FridgeJam;
-- identify substantial modifications; and
+- retain the copyright and permission notices required by the MIT License;
+- clearly identify substantial modifications; and
 - avoid implying endorsement by or affiliation with Stephen Agyemang.
 
 ## Third-party materials
