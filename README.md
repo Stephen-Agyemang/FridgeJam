@@ -32,7 +32,7 @@ This repository features a fully responsive, mobile-first retro-cozy design, dyn
 
 FridgeJam is an original portfolio project created and maintained by **Stephen Agyemang** for the **GDG Coding Jam (Track 4)**. The repository documents the design and development of the project; its Git history provides the development timeline.
 
-Reuse of the code is subject to the MIT License, including its requirement that the copyright and permission notices be retained. See [NOTICE.md](NOTICE.md) for project attribution, branding guidance, and third-party acknowledgements.
+The code is source-available, not open source: you're welcome to read and learn from it, but reuse or deployment needs permission. See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md).
 
 ---
 
@@ -163,8 +163,8 @@ FridgeJam keeps you entertained while your AI meal is cooking with two highly co
 
 ## 📜 License & Branding
 
-The FridgeJam source code is available under the [MIT License](LICENSE).
+Copyright (c) 2026 Stephen Agyemang. All rights reserved. FridgeJam is **source-available, not open source**.
 
-The MIT License grants broad permission to use, modify, distribute, and sell copies of the software, provided its copyright and permission notices are retained. It does **not** grant permission to use the **FridgeJam** name, identity, or branding in a way that suggests an unofficial fork or service is the original project or is endorsed by Stephen Agyemang.
+You may read and study the code, fork it on GitHub, and quote short excerpts with attribution. Copying, redistributing, deploying or hosting it (modified or not), or using it commercially requires prior written permission. The **FridgeJam** name and identity are not licensed for reuse.
 
-Any modified or derivative version must carry a distinct name and project identity, must clearly identify its changes, and must not present itself as the original FridgeJam or as endorsed by Stephen Agyemang.
+Want to use something here? Ask at agyemangstephen2580@gmail.com. The answer is usually yes. Full terms are in [LICENSE](LICENSE); earlier versions released under MIT are covered in [NOTICE.md](NOTICE.md).

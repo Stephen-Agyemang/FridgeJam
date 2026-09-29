@@ -2,27 +2,24 @@
 
 FridgeJam is an original portfolio project created and maintained by Stephen Agyemang for the GDG Coding Jam (Track 4).
 
-Copyright (c) 2026 Stephen Agyemang.
+Copyright (c) 2026 Stephen Agyemang. All rights reserved.
 
-## Software license
+## License
 
-Unless a file or dependency states otherwise, the source code in this repository is licensed under the MIT License. See [LICENSE](LICENSE) for the complete terms.
+This repository is source-available, not open source. You may read, study, and fork it on GitHub, and quote short excerpts with attribution. Copying, redistributing, deploying, hosting, or commercially using FridgeJam or a derivative of it requires prior written permission. See [LICENSE](LICENSE) for the complete terms.
 
-The MIT License requires its copyright and permission notices to be included in all copies or substantial portions of the software.
+If you want to use something here, ask at agyemangstephen2580@gmail.com. The answer is usually yes.
+
+### Earlier MIT-licensed versions
+
+Versions of this repository published before this change were released under the MIT License. Copies obtained under those versions remain governed by the MIT License. All later versions are governed by the current [LICENSE](LICENSE).
 
 ## Name and project identity
 
-The MIT License applies to the software, but does not grant trademark rights or permission to represent a modified copy as the original FridgeJam project.
-
-Any fork, modified copy, or derivative distribution must:
-
-- use a distinct name and project identity;
-- retain the copyright and permission notices required by the MIT License;
-- clearly identify substantial modifications; and
-- avoid implying endorsement by or affiliation with Stephen Agyemang.
+The FridgeJam name, logo, chef personas, and project identity are not licensed for reuse. Any permitted use must not imply endorsement by or affiliation with Stephen Agyemang.
 
 ## Third-party materials
 
-Third-party packages, hosted services, fonts, photographs, APIs, and other materials remain subject to their respective owners' terms and licenses. They are not relicensed by this notice. This includes services and content supplied by Google Gemini, Firebase, Google Fonts, Unsplash, and the project's installed Python and browser dependencies.
+Third-party packages, hosted services, fonts, photographs, APIs, and other materials remain subject to their respective owners' terms and licenses. They are not relicensed by this notice. This includes services and content supplied by Google Gemini, Firebase, Google Fonts, Unsplash, cdnjs (html2pdf.js), and the project's installed Python and browser dependencies.
 
 FridgeJam and its author are not affiliated with or endorsed by those third-party providers unless expressly stated otherwise.
