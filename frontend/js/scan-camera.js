@@ -126,13 +126,14 @@ function applyFoodImageAnalysis(data) {
         appState.dishTarget = dish;
     }
 
-    appState.dishImageHint = [recipeHint, styleNotes]
+    // What's visible in a photo of a finished dish describes the dish, not the
+    // user's fridge, so it goes in the hint rather than the ingredient list.
+    const visibleNote = visibleIngredients.length > 0
+        ? `Visible in the photo: ${visibleIngredients.filter(Boolean).join(', ')}.`
+        : '';
+    appState.dishImageHint = [recipeHint, styleNotes, visibleNote]
         .filter(Boolean)
         .join(' ');
-
-    if (visibleIngredients.length > 0) {
-        commitIngredientsToList(visibleIngredients, 'food image');
-    }
 
     updateInputTextareaAndSync();
     showToast(dish ? `Looks like ${dish}. I can help you cook something like it. 🍽️` : "Food image read. I can help you cook something like it. 🍽️");

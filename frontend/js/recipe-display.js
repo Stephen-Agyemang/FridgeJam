@@ -68,12 +68,12 @@ function renderRecipeScreen(recipe, imageResult) {
             {
                 category: "pasta",
                 keys: ["pasta", "noodle", "spaghetti", "macaroni", "penne", "fettuccine", "lasagna", "ravioli", "carbonara", "bolognese", "pesto"],
-                url: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80"
+                url: "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=800&q=80"
             },
             {
                 category: "soup",
                 keys: ["soup", "stew", "broth", "chowder", "ramen", "pho", "minestrone", "bisque", "gumbo"],
-                url: "https://images.unsplash.com/photo-1547592165-e1d17f57655c?auto=format&fit=crop&w=800&q=80"
+                url: "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?auto=format&fit=crop&w=800&q=80"
             },
             {
                 category: "sandwich",
@@ -88,12 +88,12 @@ function renderRecipeScreen(recipe, imageResult) {
             {
                 category: "dessert",
                 keys: ["cake", "cookie", "sweet", "chocolate", "dessert", "pastry", "pie", "brownie", "muffin", "tart", "ice cream"],
-                url: "https://images.unsplash.com/photo-1508737027454-e6454ef45afd?auto=format&fit=crop&w=800&q=80"
+                url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80"
             },
             {
                 category: "chicken",
                 keys: ["chicken", "turkey", "poultry", "wing", "breast", "drumstick", "nugget"],
-                url: "https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=800&q=80"
+                url: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&w=800&q=80"
             },
             {
                 category: "beef",
@@ -113,7 +113,7 @@ function renderRecipeScreen(recipe, imageResult) {
             {
                 category: "potato",
                 keys: ["potato", "fry", "wedges", "hash brown", "tater", "sweet potato", "gnocchi"],
-                url: "https://images.unsplash.com/photo-1518013006361-71899c437b3b?auto=format&fit=crop&w=800&q=80"
+                url: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=800&q=80"
             },
             {
                 category: "pizza",
@@ -301,36 +301,7 @@ function renderRecipeScreen(recipe, imageResult) {
     }
 
     // 4. Ingredients Rows Pills
-    if (DOM.recipeIngredientsList) {
-        DOM.recipeIngredientsList.innerHTML = '';
-        recipe.ingredients.forEach(ing => {
-            const div = document.createElement('div');
-            div.className = `ingredient-row-pill ${ing.is_user_ingredient ? 'have-style' : 'need-style'}`;
-            
-            const svg = ing.is_user_ingredient 
-                ? `<svg class="status-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="10" fill="#B5D3B8" stroke="#25283D" stroke-width="2"/>
-                    <path d="M8 12L11 15L16 9" stroke="#25283D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                   </svg>`
-                : `<svg class="status-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="10" fill="none" stroke="#25283D" stroke-width="2" stroke-dasharray="3 3"/>
-                    <path d="M12 8V16M8 12H16" stroke="#25283D" stroke-width="2" stroke-linecap="round"/>
-                   </svg>`;
-                   
-            const amountName = ing.amount ? `${escapeHtml(ing.amount)} ${escapeHtml(ing.name)}` : escapeHtml(ing.name);
-            const badgeClass = ing.is_user_ingredient ? 'badge-have' : 'badge-need';
-            const badgeText = ing.is_user_ingredient ? 'have' : 'need';
-            
-            div.innerHTML = `
-                <div class="row-left">
-                    ${svg}
-                    <span>${amountName}</span>
-                </div>
-                <span class="row-badge ${badgeClass}">${badgeText}</span>
-            `;
-            DOM.recipeIngredientsList.appendChild(div);
-        });
-    }
+    renderIngredientRows(recipe);
 
     // 5. Preparation Steps (with inline cooking timers)
     clearAllTimers();
@@ -366,4 +337,62 @@ function renderRecipeScreen(recipe, imageResult) {
         };
         DOM.recipeTipHeaderTitle.textContent = chefTipTitles[recipe.selected_personality] || "Chef's Secret Tip";
     }
+}
+
+// --- Ingredient rows (re-rendered after a swap) ---
+const HAVE_ICON_SVG = `<svg class="status-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" fill="#B5D3B8" stroke="#25283D" stroke-width="2"/>
+    <path d="M8 12L11 15L16 9" stroke="#25283D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+   </svg>`;
+const NEED_ICON_SVG = `<svg class="status-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" fill="none" stroke="#25283D" stroke-width="2" stroke-dasharray="3 3"/>
+    <path d="M12 8V16M8 12H16" stroke="#25283D" stroke-width="2" stroke-linecap="round"/>
+   </svg>`;
+
+function renderIngredientRows(recipe) {
+    if (!DOM.recipeIngredientsList) return;
+    DOM.recipeIngredientsList.innerHTML = '';
+    recipe.ingredients.forEach((ing, idx) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'ingredient-row-wrap';
+        wrap.dataset.index = idx;
+
+        const div = document.createElement('div');
+        div.className = `ingredient-row-pill ${ing.is_user_ingredient ? 'have-style' : 'need-style'}${ing.swapped_from ? ' swapped-style' : ''}`;
+
+        const amountName = ing.amount ? `${escapeHtml(ing.amount)} ${escapeHtml(ing.name)}` : escapeHtml(ing.name);
+        let badgeClass = ing.is_user_ingredient ? 'badge-have' : 'badge-need';
+        let badgeText = ing.is_user_ingredient ? 'have' : 'need';
+        if (ing.swapped_from) {
+            badgeClass = 'badge-swapped';
+            badgeText = 'swapped';
+        }
+
+        div.innerHTML = `
+            <div class="row-left">
+                ${ing.is_user_ingredient ? HAVE_ICON_SVG : NEED_ICON_SVG}
+                <span>${amountName}</span>
+            </div>
+            <div class="row-right">
+                <button type="button" class="swap-btn" data-action="swap" data-index="${idx}"
+                    aria-label="Find a substitute for ${escapeHtml(ing.name)}" title="Don't have it? Swap it">🔄 swap</button>
+                <span class="row-badge ${badgeClass}">${badgeText}</span>
+            </div>
+        `;
+        wrap.appendChild(div);
+
+        if (ing.swapped_from) {
+            const orig = ing.swapped_from;
+            const origLabel = orig.amount ? `${orig.amount} ${orig.name}` : orig.name;
+            const note = document.createElement('div');
+            note.className = 'swap-note';
+            note.innerHTML = `
+                <span>was: <s>${escapeHtml(origLabel)}</s>${ing.swap_note ? ` · ${escapeHtml(ing.swap_note)}` : ''}</span>
+                <button type="button" class="swap-undo-btn" data-action="undo-swap" data-index="${idx}">undo</button>
+            `;
+            wrap.appendChild(note);
+        }
+
+        DOM.recipeIngredientsList.appendChild(wrap);
+    });
 }

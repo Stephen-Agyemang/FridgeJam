@@ -1,0 +1,169 @@
+/* Ingredient swap — substitute suggestions on recipe ingredient rows */
+
+.ingredient-row-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.swap-btn {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 2px solid #25283D;
+  background: #FFFFFF;
+  color: #25283D;
+  cursor: pointer;
+  text-transform: lowercase;
+  transition: background 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.swap-btn:hover,
+.swap-btn:focus-visible {
+  background: #FFF3C4;
+  transform: translateY(-1px);
+}
+
+/* Swapped row state */
+.ingredient-row-pill.swapped-style {
+  border: 2px solid #25283D;
+  background: #FFF8E1;
+}
+
+.row-badge.badge-swapped {
+  border: 2px solid #25283D;
+  background: #FFE08A;
+  color: #25283D;
+}
+
+.swap-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 18px;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: #5A5C6E;
+}
+
+.swap-undo-btn {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: none;
+  border: none;
+  color: #25283D;
+  text-decoration: underline;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Suggestions panel */
+.swap-panel {
+  border: 2px dashed #25283D;
+  border-radius: 18px;
+  background: #FAF7F0;
+  padding: 12px 14px;
+  font-family: var(--font-body);
+  color: #25283D;
+  animation: swap-panel-in 0.18s ease-out;
+}
+
+@keyframes swap-panel-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.swap-loading,
+.swap-chef-note {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.swap-loading {
+  margin: 0;
+}
+
+.swap-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.swap-option {
+  border: 2px solid #25283D;
+  border-radius: 14px;
+  background: #FFFFFF;
+  padding: 10px 12px;
+}
+
+.swap-option-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+
+.swap-option-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.swap-fridge-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1.5px solid #25283D;
+  background: #B5D3B8;
+}
+
+.swap-option-why,
+.swap-option-adjust {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.swap-option-adjust {
+  color: #5A3E0A;
+}
+
+.swap-use-btn {
+  margin-top: 8px;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 14px;
+  border: 2px solid #25283D;
+  background: #B5D3B8;
+  color: #25283D;
+  cursor: pointer;
+}
+
+.swap-use-btn:hover,
+.swap-use-btn:focus-visible {
+  background: #9FC6A3;
+}
+
+@media (max-width: 480px) {
+  .ingredient-row-pill {
+    gap: 8px;
+  }
+
+  .swap-btn {
+    padding: 3px 8px;
+  }
+}

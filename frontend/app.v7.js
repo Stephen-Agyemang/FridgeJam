@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'initScanCameraEvents',
         'initVoiceInput',
         'initShoppingListEvents',
+        'initIngredientSwapEvents',
         'initEntertainmentZoneEvents',
         'renderIngredientsTags',
         'initAuth'

@@ -76,16 +76,13 @@ function initMealPlannerEvents() {
         const meal = banner ? banner._pendingMeal : null;
         if (!meal) { hideCookFromPlanConfirm(); return; }
 
-        // Pre-fill ingredients from key_ingredients, falling back to an empty list
+        // Target this exact dish. Key ingredients go in the hint, not the fridge
+        // list, so the chef doesn't mark planner suggestions as things the user has.
+        const mealName = meal.meal_name || meal.title || '';
         const keyIngs = (meal.key_ingredients || []).filter(Boolean);
-        if (keyIngs.length > 0) {
-            appState.ingredients = keyIngs;
-            DOM.ingredientsInput.value = keyIngs.join(', ');
-            renderIngredientsTags();
-        }
-
-        // Store the meal name so the backend can target this exact dish
-        appState.planRecipeHint = meal.meal_name || meal.title || null;
+        appState.planRecipeHint = mealName
+            ? (keyIngs.length > 0 ? `${mealName}. Key ingredients: ${keyIngs.join(', ')}` : mealName)
+            : null;
 
         hideCookFromPlanConfirm();
         closeMealPlanner();

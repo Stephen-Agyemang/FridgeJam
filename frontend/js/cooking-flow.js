@@ -91,7 +91,7 @@ async function startCooking() {
     const dishTarget = DOM.dishTargetInput ? DOM.dishTargetInput.value.trim() : '';
     appState.dishTarget = dishTarget;
 
-    if (!isDishMode && appState.ingredients.length === 0) {
+    if (!isDishMode && !isPlannerCook && appState.ingredients.length === 0) {
         showToast("Add some ingredients first before lighting the stove!");
         return;
     }
@@ -217,7 +217,7 @@ async function startCooking() {
             DOM.cookingLogText.textContent = "Plating dish and snapping a photo...";
         }
         
-        // Step 2: Generate Imagen photo
+        // Step 2: Generate dish photo
         let imageData = { success: false, image_url: null };
         const promptText = recipeData.image_prompt || recipeData.imagePrompt || recipeData.image_description || recipeData.title || "A professional food photograph of delicious culinary dish";
         try {
