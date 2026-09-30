@@ -1,7 +1,8 @@
-"""FridgeJam — FastAPI server with Gemini AI and Imagen integration."""
+"""FridgeJam — FastAPI server with Gemini AI text and image generation."""
 
 import json
 import os
+import re
 import base64
 from functools import lru_cache
 from typing import Optional
@@ -57,6 +58,55 @@ def _clean_list_values(values, limit: int, max_item_len: int = 50) -> list[str]:
     return cleaned
 
 
+# Descriptors that don't identify an ingredient ("2 large diced tomatoes" -> tomato)
+_INGREDIENT_FILLER_WORDS = {
+    "fresh", "large", "small", "medium", "chopped", "diced", "minced", "sliced", "grated",
+    "tinned", "canned", "can", "cans", "cup", "cups", "tbsp", "tsp", "the", "and", "for",
+    "taste", "whole", "dried", "raw", "cooked", "leftover", "leftovers", "boneless",
+    "skinless", "ripe", "frozen", "organic", "optional", "some", "about", "into", "with",
+}
+
+
+def _ingredient_words(text: str) -> set[str]:
+    """Reduce an ingredient phrase to singular identifying words."""
+    words = set()
+    for w in re.findall(r"[a-z]+", text.lower()):
+        if len(w) < 3 or w in _INGREDIENT_FILLER_WORDS:
+            continue
+        if w.endswith("ies"):
+            w = w[:-3] + "y"
+        elif w.endswith("oes"):
+            w = w[:-2]
+        elif w.endswith("s") and not w.endswith("ss"):
+            w = w[:-1]
+        words.add(w)
+    return words
+
+
+def _reconcile_have_flags(recipe_data: dict, user_items: list[str]) -> int:
+    """Flip `is_user_ingredient` to False for anything the user never listed.
+
+    The model sometimes marks ingredients as "have" that weren't in the user's
+    input. Matching is deliberately lenient (any shared word) so real matches
+    like "tomatoes" -> "tinned diced tomatoes" survive. Returns the flip count.
+    """
+    user_words = set()
+    for item in user_items:
+        user_words |= _ingredient_words(item)
+    for fix in recipe_data.get("spelling_corrections") or []:
+        if isinstance(fix, dict):
+            user_words |= _ingredient_words(str(fix.get("interpreted_as", "")))
+
+    flipped = 0
+    for ing in recipe_data.get("ingredients") or []:
+        if not isinstance(ing, dict) or not ing.get("is_user_ingredient"):
+            continue
+        if not (_ingredient_words(str(ing.get("name", ""))) & user_words):
+            ing["is_user_ingredient"] = False
+            flipped += 1
+    return flipped
+
+
 limiter = Limiter(key_func=_get_client_ip)
 app = FastAPI(title="FridgeJam", docs_url=None, redoc_url=None)
 app.state.limiter = limiter
@@ -90,8 +140,9 @@ app.add_middleware(
 RECIPE_MODEL = "gemini-2.5-flash"
 # Lower-stakes structured tasks (meal plan, jokes). Use a Lite model for faster structured JSON.
 PLAN_MODEL = os.getenv("GEMINI_PLAN_MODEL", "gemini-3.1-flash-lite")
-# Primary model for image generation
-IMAGE_MODEL = "imagen-4.0-generate-001"
+# Image generation. Imagen was retired from the Gemini API, so dish photos use a
+# Gemini native image model via generate_content.
+IMAGE_MODEL = os.getenv("GEMINI_IMAGE_MODEL", "gemini-3.1-flash-image")
 
 @lru_cache(maxsize=1)
 def _create_client():
@@ -107,8 +158,12 @@ def _create_client():
     )
 
 
-def _fast_plan_generation_config(model: str) -> types.GenerateContentConfig:
-    """Tune meal-plan generation for latency over deep reasoning."""
+def _fast_plan_generation_config(
+    model: str,
+    response_schema=None,
+    max_output_tokens: int = 1800,
+) -> types.GenerateContentConfig:
+    """Tune structured generation (meal plans, swaps) for latency over deep reasoning."""
     thinking_config = None
     if model.startswith("gemini-3"):
         thinking_config = types.ThinkingConfig(thinking_level="minimal")
@@ -118,11 +173,62 @@ def _fast_plan_generation_config(model: str) -> types.GenerateContentConfig:
     return types.GenerateContentConfig(
         temperature=0.65,
         candidate_count=1,
-        max_output_tokens=1800,
+        max_output_tokens=max_output_tokens,
         response_mime_type="application/json",
-        response_schema=list[MealPlanItem],
+        response_schema=response_schema or list[MealPlanItem],
         thinking_config=thinking_config,
     )
+
+
+CHEF_NAMES = {
+    "budget": "Thrifty Chef Tony",
+    "grandma": "Grandma Marie",
+    "chef": "Chef Pierre",
+    "chloe": "Healthy Chef Chloe",
+}
+
+# Hard dietary safety rules shared by the recipe and substitution endpoints
+RESTRICTION_RULES = {
+    "halal": (
+        "NO pork, pork derivatives (lard, gelatin from pork, etc.), or alcohol of any kind. "
+        "All meat must be halal-compliant. No animal shortening or non-halal additives."
+    ),
+    "vegetarian": (
+        "NO meat, poultry, or seafood of any kind. Dairy and eggs are permitted."
+    ),
+    "vegan": (
+        "NO animal products whatsoever — no meat, poultry, seafood, dairy (milk, butter, cheese, cream, yogurt, ghee), "
+        "eggs, honey, or any animal-derived ingredient."
+    ),
+    "gluten-free": (
+        "NO wheat, barley, rye, spelt, kamut, triticale, or any ingredient derived from them "
+        "(including flour, bread, pasta, soy sauce unless certified GF, beer, malt). "
+        "Flag any ingredient with potential cross-contamination risk."
+    ),
+    "nut-free": (
+        "NO nuts of any kind — no peanuts (also a legume but treated as a nut allergy), "
+        "tree nuts (almonds, cashews, walnuts, pecans, pistachios, macadamia, brazil nuts, hazelnuts, pine nuts), "
+        "nut oils, nut butters, or nut extracts. This is a life-threatening allergy risk."
+    ),
+    "dairy-free": (
+        "NO milk, butter, cheese, cream, yogurt, ghee, lactose, whey, casein, or any dairy derivative."
+    ),
+    "kosher": (
+        "NO pork or pork products. NO shellfish or non-kosher seafood. "
+        "Do NOT mix meat and dairy in the same dish."
+    ),
+    "pescatarian": (
+        "NO meat or poultry of any kind — no beef, pork, lamb, chicken, turkey, duck, or any land animal flesh. "
+        "Fish and all seafood ARE permitted. Dairy and eggs are also permitted."
+    ),
+    "jain": (
+        "This is a strict Jain vegetarian diet. NO meat, poultry, seafood, or eggs of any kind. "
+        "NO root vegetables — absolutely no onion, garlic, potato, carrot, radish, beet, turnip, leek, "
+        "spring onion, shallot, or any vegetable that grows underground, as harvesting them harms the organism. "
+        "NO eggplant/brinjal (aubergine). Use only above-ground vegetables, legumes, grains, dairy, and nuts. "
+        "If a user ingredient violates this, omit it completely and suggest a compliant substitute."
+    ),
+}
 
 
 # --- Models ---
@@ -169,6 +275,28 @@ class MealPlanItem(BaseModel):
     key_ingredients: list[str]
 
 
+class SubstituteRequest(BaseModel):
+    ingredient: str                                   # the ingredient the user doesn't have
+    amount: Optional[str] = ""
+    dish_title: Optional[str] = ""
+    recipe_ingredients: Optional[list[str]] = []      # rest of the dish, for context
+    fridge_ingredients: Optional[list[str]] = []      # what the user actually has
+    dietary_restrictions: Optional[list[str]] = []    # safety-critical, same as recipe endpoint
+    personality: str = "grandma"
+
+
+class SubstituteOption(BaseModel):
+    name: str
+    amount: str
+    from_fridge: bool
+    why: str
+    adjustment: str
+
+
+class SubstituteResponse(BaseModel):
+    substitutes: list[SubstituteOption]
+    chef_note: str
+
 # --- Routes ---
 
 @app.post("/api/recipe")
@@ -199,47 +327,6 @@ async def generate_recipe(request: Request, body: RecipeRequest):
     personality_instruction = PERSONALITY_PROMPTS[personality_key]
 
     # Build dietary restriction block — these are hard safety constraints
-    RESTRICTION_RULES = {
-        "halal": (
-            "NO pork, pork derivatives (lard, gelatin from pork, etc.), or alcohol of any kind. "
-            "All meat must be halal-compliant. No animal shortening or non-halal additives."
-        ),
-        "vegetarian": (
-            "NO meat, poultry, or seafood of any kind. Dairy and eggs are permitted."
-        ),
-        "vegan": (
-            "NO animal products whatsoever — no meat, poultry, seafood, dairy (milk, butter, cheese, cream, yogurt, ghee), "
-            "eggs, honey, or any animal-derived ingredient."
-        ),
-        "gluten-free": (
-            "NO wheat, barley, rye, spelt, kamut, triticale, or any ingredient derived from them "
-            "(including flour, bread, pasta, soy sauce unless certified GF, beer, malt). "
-            "Flag any ingredient with potential cross-contamination risk."
-        ),
-        "nut-free": (
-            "NO nuts of any kind — no peanuts (also a legume but treated as a nut allergy), "
-            "tree nuts (almonds, cashews, walnuts, pecans, pistachios, macadamia, brazil nuts, hazelnuts, pine nuts), "
-            "nut oils, nut butters, or nut extracts. This is a life-threatening allergy risk."
-        ),
-        "dairy-free": (
-            "NO milk, butter, cheese, cream, yogurt, ghee, lactose, whey, casein, or any dairy derivative."
-        ),
-        "kosher": (
-            "NO pork or pork products. NO shellfish or non-kosher seafood. "
-            "Do NOT mix meat and dairy in the same dish."
-        ),
-        "pescatarian": (
-            "NO meat or poultry of any kind — no beef, pork, lamb, chicken, turkey, duck, or any land animal flesh. "
-            "Fish and all seafood ARE permitted. Dairy and eggs are also permitted."
-        ),
-        "jain": (
-            "This is a strict Jain vegetarian diet. NO meat, poultry, seafood, or eggs of any kind. "
-            "NO root vegetables — absolutely no onion, garlic, potato, carrot, radish, beet, turnip, leek, "
-            "spring onion, shallot, or any vegetable that grows underground, as harvesting them harms the organism. "
-            "NO eggplant/brinjal (aubergine). Use only above-ground vegetables, legumes, grains, dairy, and nuts. "
-            "If a user ingredient violates this, omit it completely and suggest a compliant substitute."
-        ),
-    }
 
     active_restrictions = [r.lower().strip() for r in (body.dietary_restrictions or []) if r.strip()]
     dietary_block = ""
@@ -278,7 +365,7 @@ async def generate_recipe(request: Request, body: RecipeRequest):
     # Build recipe hint block — used when user clicks "Cook this" on a meal planner AI stub
     hint_block = ""
     if recipe_hint_text:
-        safe_hint = _sanitize_line(recipe_hint_text, max_len=420)
+        safe_hint = _sanitize_line(recipe_hint_text, max_len=600)
         hint_block = (
             f"\n\nDISH TARGET — USER'S CHOSEN MEAL:\n"
             f"The user specifically wants to make: \"{safe_hint}\".\n"
@@ -328,6 +415,13 @@ PERSONALITY ASSIGNMENT:
 
         recipe_data = json.loads(response_text)
         
+        # Only what the user actually listed counts as "have"
+        if recipe_data.get("is_food") is not False:
+            user_items = [i for i in ingredients_text.split(",") if i.strip()] + expiring
+            flipped = _reconcile_have_flags(recipe_data, user_items)
+            if flipped:
+                print(f"[Recipe] Corrected {flipped} ingredient(s) wrongly marked as 'have'")
+
         # Add personality identifier to the response
         recipe_data["selected_personality"] = personality_key
         
@@ -499,60 +593,47 @@ Rules:
 @app.post("/api/image")
 @limiter.limit("10/minute")
 async def generate_image(request: Request, body: ImageRequest):
-    """Generate an image using Imagen 3. Returns base64 JPEG or success=False if not available."""
-    
+    """Generate a dish photo with a Gemini image model. Returns base64 JPEG or success=False if not available."""
+
     prompt = body.prompt.strip()
     if not prompt:
         raise HTTPException(status_code=400, detail="Image prompt cannot be empty")
 
     try:
         client = _create_client()
-        
-        print(f"[Imagen] Generating image with model={IMAGE_MODEL}, prompt={prompt[:80]}...")
-        response = client.models.generate_images(
+
+        print(f"[Image] Generating image with model={IMAGE_MODEL}, prompt={prompt[:80]}...")
+        response = client.models.generate_content(
             model=IMAGE_MODEL,
-            prompt=prompt,
-            config=types.GenerateImagesConfig(
-                number_of_images=1,
-                aspect_ratio="4:3",
-                output_mime_type="image/jpeg"
-            )
+            contents=f"{prompt}\n\nShow the finished, cooked dish ready to eat. Food only, no people, no text or watermarks.",
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE"],
+                image_config=types.ImageConfig(aspect_ratio="4:3"),
+            ),
         )
 
-        print(f"[Imagen] Response received. generated_images count: {len(response.generated_images) if response.generated_images else 0}")
-        
-        if not response.generated_images:
-            raise ValueError("No images returned from Imagen API")
-
-        # Get base64 encoded bytes
-        img_obj = response.generated_images[0]
-        print(f"[Imagen] Image object keys: {dir(img_obj)}")
-        
         image_bytes = None
-        if hasattr(img_obj, 'image') and img_obj.image and hasattr(img_obj.image, 'image_bytes'):
-            image_bytes = img_obj.image.image_bytes
-            print(f"[Imagen] image_bytes length: {len(image_bytes) if image_bytes else 'None'}")
-        
+        mime_type = "image/jpeg"
+        for part in (response.candidates[0].content.parts if response.candidates else None) or []:
+            if part.inline_data and part.inline_data.data:
+                image_bytes = part.inline_data.data
+                mime_type = part.inline_data.mime_type or mime_type
+                break
+
         if not image_bytes:
-            # Try alternate attribute path
-            if hasattr(img_obj, 'image_bytes'):
-                image_bytes = img_obj.image_bytes
-                print(f"[Imagen] Alternate image_bytes length: {len(image_bytes) if image_bytes else 'None'}")
-        
-        if not image_bytes:
-            raise ValueError("image_bytes is empty or None from Imagen response")
-        
+            raise ValueError("No image returned from the image model")
+
         encoded_image = base64.b64encode(image_bytes).decode("utf-8")
-        print(f"[Imagen] Successfully encoded image, base64 length: {len(encoded_image)}")
-        
+        print(f"[Image] Successfully encoded image, base64 length: {len(encoded_image)}")
+
         return {
             "success": True,
-            "image_url": f"data:image/jpeg;base64,{encoded_image}"
+            "image_url": f"data:{mime_type};base64,{encoded_image}"
         }
 
     except Exception as e:
-        # Gracefully handle if API key doesn't support Imagen, quota exceeded, or Vertex AI error
-        print(f"[Imagen] Generation failed: {type(e).__name__}: {e}")
+        # Gracefully handle if the key lacks image access, quota is exceeded, or a Vertex AI error
+        print(f"[Image] Generation failed: {type(e).__name__}: {e}")
         return {
             "success": False,
             "error": "The chef's sketchbook is misplaced! We couldn't draw a picture of the dish, but the recipe is ready to cook.",
@@ -569,13 +650,7 @@ async def evaluate_joke(request: Request, body: JokeEvaluationRequest):
         raise HTTPException(status_code=400, detail="Chef, please type something before telling your joke!")
 
     personality_key = body.personality.lower()
-    chef_names = {
-        "budget": "Thrifty Chef Tony",
-        "grandma": "Grandma Marie",
-        "chef": "Chef Pierre",
-        "chloe": "Healthy Chef Chloe"
-    }
-    chef_name = chef_names.get(personality_key, "Grandma Marie")
+    chef_name = CHEF_NAMES.get(personality_key, "Grandma Marie")
 
     prompt = f"""
 You are playing the role of {chef_name}, a friendly AI cooking character.
@@ -619,13 +694,7 @@ async def generate_meal_plan(request: Request, body: MealPlanRequest):  # noqa: 
     """Generate a 7-day meal plan suggestion using Gemini."""
     ingredients_hint = body.ingredients.strip() if body.ingredients else ""
     personality_key = body.personality.lower()
-    chef_names = {
-        "budget": "Thrifty Chef Tony",
-        "grandma": "Grandma Marie",
-        "chef": "Chef Pierre",
-        "chloe": "Healthy Chef Chloe"
-    }
-    chef_name = chef_names.get(personality_key, "Grandma Marie")
+    chef_name = CHEF_NAMES.get(personality_key, "Grandma Marie")
     ingredients_section = f"\nAvailable fridge ingredients to incorporate: {ingredients_hint}" if ingredients_hint else ""
 
     # Dietary restrictions — same safety-critical rules as the recipe endpoint
@@ -752,6 +821,87 @@ Rules:
         raise HTTPException(
             status_code=500,
             detail="The planner's notepad is full! Give the kitchen a moment and try again."
+        )
+
+
+@app.post("/api/substitute")
+@limiter.limit("20/minute")
+async def suggest_substitutes(request: Request, body: SubstituteRequest):  # noqa: ARG001 — required by slowapi
+    """Suggest dish-aware replacements for an ingredient the user doesn't have."""
+    ingredient = _sanitize_line(body.ingredient.replace('"', ''), max_len=60)
+    if not ingredient:
+        raise HTTPException(status_code=400, detail="Tell the chef which ingredient you need to swap!")
+
+    amount = _sanitize_line((body.amount or "").replace('"', ''), max_len=40)
+    dish_title = _sanitize_line((body.dish_title or "").replace('"', ''), max_len=120)
+    recipe_ings = _clean_list_values(body.recipe_ingredients, limit=25)
+    fridge_ings = _clean_list_values(body.fridge_ingredients, limit=30)
+    chef_name = CHEF_NAMES.get(body.personality.lower(), "Grandma Marie")
+
+    dietary_block = ""
+    active_restrictions = [r.lower().strip() for r in (body.dietary_restrictions or []) if r.strip()]
+    restriction_lines = [
+        f"  - {r.upper()}: {RESTRICTION_RULES[r]}" for r in active_restrictions if r in RESTRICTION_RULES
+    ]
+    if restriction_lines:
+        dietary_block = (
+            "\n\nHARD DIETARY RESTRICTIONS — NON-NEGOTIABLE SAFETY CONSTRAINTS:\n"
+            "Every substitute you suggest MUST comply with ALL of these. They may be life-threatening "
+            "allergies or sincere religious obligations.\n"
+            + "\n".join(restriction_lines)
+        )
+
+    dish_line = f'Dish being cooked: "{dish_title}"' if dish_title else "Dish being cooked: (not specified)"
+    amount_line = f" (recipe calls for: {amount})" if amount else ""
+    recipe_line = f"\nOther ingredients in the dish: {', '.join(recipe_ings)}" if recipe_ings else ""
+    fridge_line = (
+        f"\nIngredients the user HAS in their fridge: {', '.join(fridge_ings)}"
+        if fridge_ings else "\nThe user did not list their fridge contents."
+    )
+
+    prompt = f"""You are {chef_name}, a friendly AI cooking character with deep knowledge of global cuisines and ingredient chemistry.
+
+The user is cooking a recipe but does NOT have one ingredient. Suggest replacements that will still make the dish work.
+
+{dish_line}
+Missing ingredient: "{ingredient}"{amount_line}{recipe_line}{fridge_line}{dietary_block}
+
+Rules:
+- Suggest 2 or 3 substitutes, best first. Consider the ingredient's role in THIS dish (fat, acid, binder, leavening, umami, texture, sweetness, etc.) and the dish's cultural context.
+- Prefer ingredients from the user's fridge list and put those first; set "from_fridge" true ONLY for items on that list.
+- Otherwise suggest common pantry or grocery items a home cook is likely to have.
+- Scale "amount" to match the original quantity.
+- "why": one short sentence on why it works here.
+- "adjustment": one short sentence on how to use it differently (e.g. "Add 1 tsp lemon juice and rest 5 minutes"). Use an empty string if it is a straight drop-in.
+- "chef_note": one short sentence in your character's voice. If no substitute works well, say so honestly here and still give the closest options.
+- Never suggest the missing ingredient itself.
+- Return ONLY JSON: {{"substitutes": [{{"name": "", "amount": "", "from_fridge": false, "why": "", "adjustment": ""}}], "chef_note": ""}}"""
+
+    try:
+        client = _create_client()
+        response = client.models.generate_content(
+            model=PLAN_MODEL,
+            contents=prompt,
+            config=_fast_plan_generation_config(
+                PLAN_MODEL, response_schema=SubstituteResponse, max_output_tokens=600
+            ),
+        )
+        text = response.text.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1]
+            if text.endswith("```"):
+                text = text[:-3]
+            text = text.strip()
+        data = json.loads(text)
+        data["substitutes"] = (data.get("substitutes") or [])[:3]
+        if not data["substitutes"]:
+            raise ValueError("model returned no substitutes")
+        return data
+    except Exception as e:
+        print(f"Error suggesting substitutes: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="The chef rummaged through the pantry but came up empty. Try that swap again!",
         )
 
 
