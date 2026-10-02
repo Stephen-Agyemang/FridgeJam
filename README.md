@@ -10,7 +10,8 @@ This repository features a fully responsive, mobile-first retro-cozy design, dyn
 - 🎤 **Voice Input**: Dictate your ingredients or a dish name hands-free using the browser's Web Speech API.
 - 🥦 **Dietary Guardrails**: Nine hard, safety-critical dietary restrictions (halal, kosher, vegetarian, vegan, pescatarian, gluten-free, nut-free, dairy-free, and strict Jain) enforced as non-negotiable constraints in the prompt.
 - ⏳ **Expiry-First Mode**: Tag ingredients about to go bad and the AI builds the dish around them to cut food waste.
-
+-  🪃 **Replace ingredient**: Replace food items or ingredients you don't have with another and still make a great meal.
+  
 **Planning, tracking & export**
 - 🗓️ **AI Meal Planner**: Generates personalized 7-day meal plans (`/api/meal-plan`) shaped by a mood directive (Light, Bold, Quick, Diverse), cuisine exploration, and a taste profile mined from your saved recipes and cooking history.
 - ⏲️ **Step-by-Step Cooking Timers**: Each recipe step gets a background timer that alerts you when it's done.
